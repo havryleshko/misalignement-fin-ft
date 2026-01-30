@@ -1,0 +1,30 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "misalignment-fit-ft"
+version = "0.1.0"
+description = "AI recommendation misalignment engine"
+requires-python = ">=3.11"
+dependencies = [
+  "fastapi",
+  "uvicorn",
+  "sqlalchemy",
+  "alembic",
+  "redis",
+  "httpx",
+  "pydantic",
+  "python-dotenv",
+  "requests-cache",
+  "asyncpg",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest",
+]
+
+[tool.setuptools.packages.find]
+include = ["backend*"]
+exclude = ["infra*", "docs*"]

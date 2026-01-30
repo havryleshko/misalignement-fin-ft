@@ -1,0 +1,33 @@
+version: "3.9"
+
+services:
+  api:
+    image: misalignment-api:local
+    env_file:
+      - ../../.env
+    environment:
+      ALPHAVANTAGE_API_KEY: ${ALPHAVANTAGE_API_KEY:?set in .env or shell}
+      DATABASE_URL: ${DATABASE_URL:?set in .env or shell}
+      REDIS_URL: ${REDIS_URL:?set in .env or shell}
+      API_KEY_HASH_SALT: ${API_KEY_HASH_SALT:?set in .env or shell}
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+      RATE_LIMIT_RPM: ${RATE_LIMIT_RPM:-60}
+      CACHE_TTL_SECONDS: ${CACHE_TTL_SECONDS:-300}
+      ENV: ${ENV:-local}
+    depends_on:
+      - postgres
+      - redis
+
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: misalignment
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+
+  redis:
+    image: redis:7
+    ports:
+      - "6379:6379"
