@@ -1,5 +1,4 @@
 from datetime import datetime, timedelta
-
 from backend.data.alpha_vantage import get_price_history
 from backend.data.sec_edgar import get_latest_filings
 from backend.data.schemas import DataBundle

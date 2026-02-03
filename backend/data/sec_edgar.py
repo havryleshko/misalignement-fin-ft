@@ -2,10 +2,8 @@ import json
 import time
 from datetime import datetime
 from typing import Any
-
 import httpx
 import redis
-
 from backend.config import load_config
 from backend.data.schemas import Filing, FilingsBundle
 

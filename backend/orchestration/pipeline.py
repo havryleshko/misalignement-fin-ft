@@ -1,10 +1,16 @@
 import uuid
 from dataclasses import dataclass
-
 from pydantic import BaseModel
+import os
 from backend.api.schemas import AnalyzeRequest, AnalyzeResponse
 from backend.data.assembly import assemble_data
 from backend.data.schemas import DataBundle
+from backend.models.llm import (
+    OllamaClient,
+    build_prompt,
+    deterministic_fallback,
+    parse_llm_response,
+)
 from backend.orchestration.errors import PipelineError
 from backend.orchestration.intent_bias import IntentBiasResult, detect_bias
 
@@ -20,7 +26,7 @@ class DataRetrievalOutput(BaseModel):
 
 
 class LlmOutput(BaseModel):
-    summary: str
+    response: AnalyzeResponse
 
 
 class RiskOutput(BaseModel):
@@ -85,7 +91,24 @@ def _retrieve_data(context: PipelineContext) -> DataRetrievalOutput:
 def _llm_inference(context: PipelineContext) -> LlmOutput:
     if not context.intent_bias:
         raise PipelineError("PIPELINE_STATE", "Intent/bias missing", context.trace_id)
-    return LlmOutput(summary="Not implemented")
+    if not context.data:
+        raise PipelineError("PIPELINE_STATE", "Data missing", context.trace_id)
+
+    use_llm = os.getenv("USE_LLM", "true").lower() != "false"
+    if context.intent_bias and context.intent_bias.neutralized_question:
+        question = context.intent_bias.neutralized_question
+    else:
+        question = context.validate.normalized_question if context.validate else ""
+
+    if not use_llm or os.getenv("ENV") == "test":
+        response = deterministic_fallback(context.data.bundle, context.intent_bias)
+        return LlmOutput(response=response)
+
+    prompt = build_prompt(context.data.bundle, question, context.intent_bias)
+    client = OllamaClient()
+    raw_text = client.generate(prompt)
+    response = parse_llm_response(raw_text, context.trace_id)
+    return LlmOutput(response=response)
 
 
 def _risk_estimation(context: PipelineContext) -> RiskOutput:
@@ -99,17 +122,26 @@ def _compliance_filter(context: PipelineContext) -> ComplianceOutput:
 def _assemble_response(context: PipelineContext) -> AnalyzeResponse:
     if not (context.data and context.llm and context.risk and context.compliance):
         raise PipelineError("PIPELINE_STATE", "Missing pipeline outputs", context.trace_id)
-    response = AnalyzeResponse(
-        summary=context.llm.summary,
-        expected_return=0.0,
-        confidence_interval=[0.0, 0.0],
-        probability_positive=0.0,
-        scenarios={"base": 0.0},
-        risk_flags=context.risk.risk_flags,
-        bias_notice=context.intent_bias.bias_notice if context.intent_bias else None,
-        sources=context.data.bundle.sources,
-        disclaimer=context.compliance.disclaimer,
-    )
+    response = context.llm.response
+
+    if not response.sources:
+        raise PipelineError(
+            "MODEL_OUTPUT_INVALID", "Missing sources in model output", context.trace_id
+        )
+
+    required_sources = set(context.data.bundle.sources)
+    output_sources = set(response.sources)
+    if not required_sources.issubset(output_sources):
+        raise PipelineError(
+            "MODEL_OUTPUT_INVALID", "Model output missing required sources", context.trace_id
+        )
+
+    if context.intent_bias and context.intent_bias.bias_notice:
+        if response.bias_notice is None:
+            raise PipelineError(
+                "MODEL_OUTPUT_INVALID", "Missing bias_notice in model output", context.trace_id
+            )
+
     return response
 
 

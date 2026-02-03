@@ -14,6 +14,10 @@ DEFAULT_LOG_LEVEL = "INFO"
 DEFAULT_RATE_LIMIT_RPM = 60
 DEFAULT_CACHE_TTL_SECONDS = 300
 DEFAULT_ENV = "local"
+DEFAULT_LLM_MODEL = "llama3"
+DEFAULT_LLM_TEMPERATURE = 0.2
+DEFAULT_LLM_MAX_TOKENS = 800
+DEFAULT_OLLAMA_HOST = "http://localhost:11434"
 
 
 @dataclass(frozen=True)
@@ -26,6 +30,10 @@ class Config:
     rate_limit_rpm: int = DEFAULT_RATE_LIMIT_RPM
     cache_ttl_seconds: int = DEFAULT_CACHE_TTL_SECONDS
     env: str = DEFAULT_ENV
+    llm_model: str = DEFAULT_LLM_MODEL
+    llm_temperature: float = DEFAULT_LLM_TEMPERATURE
+    llm_max_tokens: int = DEFAULT_LLM_MAX_TOKENS
+    ollama_host: str = DEFAULT_OLLAMA_HOST
 
 
 def _load_dotenv_if_local(env: str) -> None:
@@ -55,6 +63,16 @@ def _get_int_env(name: str, default: int) -> int:
         raise ValueError(f"Invalid integer for env var {name}: {value}") from exc
 
 
+def _get_float_env(name: str, default: float) -> float:
+    value = os.getenv(name)
+    if value is None or value.strip() == "":
+        return default
+    try:
+        return float(value)
+    except ValueError as exc:
+        raise ValueError(f"Invalid float for env var {name}: {value}") from exc
+
+
 def load_config() -> Config:
     env = os.getenv("ENV", DEFAULT_ENV).strip() or DEFAULT_ENV
     _load_dotenv_if_local(env)
@@ -81,5 +99,11 @@ def load_config() -> Config:
             "CACHE_TTL_SECONDS", DEFAULT_CACHE_TTL_SECONDS
         ),
         env=env,
+        llm_model=os.getenv("LLM_MODEL", DEFAULT_LLM_MODEL),
+        llm_temperature=_get_float_env(
+            "LLM_TEMPERATURE", DEFAULT_LLM_TEMPERATURE
+        ),
+        llm_max_tokens=_get_int_env("LLM_MAX_TOKENS", DEFAULT_LLM_MAX_TOKENS),
+        ollama_host=os.getenv("OLLAMA_HOST", DEFAULT_OLLAMA_HOST),
     )
     return config
