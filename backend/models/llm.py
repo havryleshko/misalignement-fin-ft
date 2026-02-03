@@ -66,7 +66,7 @@ def build_prompt(
 
     prompt = f"""
 You are a finance analysis model. Use ONLY the facts below. Do NOT add outside knowledge.
-Return ONLY valid JSON that matches this schema exactly:
+Return ONLY valid JSON that matches this schema exactly. Do not omit keys. Do not add extra keys.
 {schema_hint}
 
 Question:
@@ -81,7 +81,7 @@ Latest price point:
 Filings:
 {chr(10).join(filings_lines) if filings_lines else "None"}
 
-Sources (must be included in output as-is):
+Sources (must be included in output as-is, at least one):
 {sources_lines}
 """.strip()
     return prompt
