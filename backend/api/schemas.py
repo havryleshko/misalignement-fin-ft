@@ -2,9 +2,17 @@ from pydantic import BaseModel, ConfigDict, Field, conlist
 
 
 class AnalyzeRequest(BaseModel):
-    ticker: str
-    question: str
-    time_horizon: str
+    ticker: str = Field(
+        min_length=1,
+        max_length=10,
+        pattern=r"^[A-Z][A-Z0-9\.\-]{0,9}$",
+        description="Uppercase ticker symbol, e.g. AAPL or BRK.B",
+    )
+    question: str = Field(min_length=5, max_length=500)
+    time_horizon: str = Field(
+        pattern=r"^\d+(d|w|m|y)$",
+        description="Duration like 30d, 12m, 2y",
+    )
 
 
 class Scenarios(BaseModel):

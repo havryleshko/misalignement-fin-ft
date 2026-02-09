@@ -1,7 +1,9 @@
+import logging
+import os
 import uuid
 from dataclasses import dataclass
+from statistics import pstdev
 from pydantic import BaseModel
-import os
 from backend.api.schemas import AnalyzeRequest, AnalyzeResponse
 from backend.data.assembly import assemble_data
 from backend.data.schemas import DataBundle
@@ -62,6 +64,9 @@ class PipelineContext:
     compliance: ComplianceOutput | None = None
 
 
+logger = logging.getLogger("misalignment")
+
+
 def _validate_request(context: PipelineContext) -> ValidationOutput:
     req = context.request
     if not req.ticker or not req.question or not req.time_horizon:
@@ -78,12 +83,17 @@ def _validate_request(context: PipelineContext) -> ValidationOutput:
 def _detect_intent_bias(context: PipelineContext) -> IntentBiasResult:
     if not context.validate:
         raise PipelineError("PIPELINE_STATE", "Validation missing", context.trace_id)
+    logger.debug("intent_bias_start", extra={"trace_id": context.trace_id})
     return detect_bias(context.validate.normalized_question)
 
 
 def _retrieve_data(context: PipelineContext) -> DataRetrievalOutput:
     if not context.validate:
         raise PipelineError("PIPELINE_STATE", "Validation missing", context.trace_id)
+    logger.debug(
+        "data_retrieval_start",
+        extra={"trace_id": context.trace_id, "ticker": context.validate.normalized_ticker},
+    )
     bundle = assemble_data(context.validate.normalized_ticker, context.trace_id)
     return DataRetrievalOutput(bundle=bundle)
 
@@ -112,17 +122,47 @@ def _llm_inference(context: PipelineContext) -> LlmOutput:
 
 
 def _risk_estimation(context: PipelineContext) -> RiskOutput:
-    return RiskOutput(risk_flags=[])
+    if not context.data:
+        raise PipelineError("PIPELINE_STATE", "Data missing", context.trace_id)
+    bundle = context.data.bundle
+    risk_flags: list[str] = []
+    if bundle.data_gaps:
+        risk_flags.append("data_gaps_present")
+
+    if not bundle.price_history or not bundle.price_history.points:
+        raise PipelineError("RISK_INPUT_INVALID", "Missing price history", context.trace_id)
+
+    points = bundle.price_history.points
+    if len(points) < 2:
+        raise PipelineError("RISK_INPUT_INVALID", "Insufficient price history", context.trace_id)
+
+    returns: list[float] = []
+    for idx in range(len(points) - 1):
+        prev_close = points[idx + 1].close
+        if prev_close == 0:
+            continue
+        returns.append((points[idx].close - prev_close) / prev_close)
+
+    if returns:
+        volatility = pstdev(returns)
+        if volatility >= 0.05:
+            risk_flags.append("high_volatility")
+    else:
+        risk_flags.append("volatility_unavailable")
+
+    return RiskOutput(risk_flags=risk_flags)
 
 
 def _compliance_filter(context: PipelineContext) -> ComplianceOutput:
+    if not context.llm:
+        raise PipelineError("PIPELINE_STATE", "Model output missing", context.trace_id)
     return ComplianceOutput(disclaimer="This output is probabilistic and not advice.")
 
 
 def _assemble_response(context: PipelineContext) -> AnalyzeResponse:
     if not (context.data and context.llm and context.risk and context.compliance):
         raise PipelineError("PIPELINE_STATE", "Missing pipeline outputs", context.trace_id)
-    response = context.llm.response
+    response = context.llm.response.model_copy(deep=True)
 
     if not response.sources:
         raise PipelineError(
@@ -142,6 +182,10 @@ def _assemble_response(context: PipelineContext) -> AnalyzeResponse:
                 "MODEL_OUTPUT_INVALID", "Missing bias_notice in model output", context.trace_id
             )
 
+    response.risk_flags = list({*response.risk_flags, *context.risk.risk_flags})
+    response.disclaimer = context.compliance.disclaimer
+    if context.intent_bias and context.intent_bias.bias_notice:
+        response.bias_notice = context.intent_bias.bias_notice
     return response
 
 
@@ -149,11 +193,17 @@ def run_pipeline(request: AnalyzeRequest, trace_id: str | None = None) -> Analyz
     trace = trace_id or str(uuid.uuid4())
     context = PipelineContext(request=request, trace_id=trace, sources=[])
 
+    logger.debug("pipeline_validate", extra={"trace_id": trace})
     context.validate = _validate_request(context)
+    logger.debug("pipeline_intent_bias", extra={"trace_id": trace})
     context.intent_bias = _detect_intent_bias(context)
+    logger.debug("pipeline_data_retrieval", extra={"trace_id": trace})
     context.data = _retrieve_data(context)
+    logger.debug("pipeline_llm_inference", extra={"trace_id": trace})
     context.llm = _llm_inference(context)
+    logger.debug("pipeline_risk", extra={"trace_id": trace})
     context.risk = _risk_estimation(context)
+    logger.debug("pipeline_compliance", extra={"trace_id": trace})
     context.compliance = _compliance_filter(context)
     context.sources = context.data.bundle.sources
     return _assemble_response(context)

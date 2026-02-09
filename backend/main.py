@@ -3,14 +3,17 @@ import time
 import uuid
 
 from fastapi import FastAPI, HTTPException, Request
+from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 import redis.asyncio as redis
 
 from backend.api.auth import authenticate_api_key
+from backend.api.schemas import ErrorResponse
 from backend.api import routes
 
 from backend.config import load_config
 from backend.models.db import async_session_maker
+from backend.models.entities import UsageLog
 
 
 def create_app() -> FastAPI:
@@ -46,6 +49,7 @@ def create_app() -> FastAPI:
                 content={"detail": "Rate limit service unavailable"},
             )
 
+        reset_epoch = (current_window + 1) * 60
         if current > rate_limit:
             retry_after = 60 - int(time.time() % 60)
             return JSONResponse(
@@ -54,10 +58,20 @@ def create_app() -> FastAPI:
                     "detail": "Rate limit exceeded",
                     "retry_after_seconds": retry_after,
                 },
-                headers={"Retry-After": str(retry_after)},
+                headers={
+                    "Retry-After": str(retry_after),
+                    "X-RateLimit-Limit": str(rate_limit),
+                    "X-RateLimit-Remaining": "0",
+                    "X-RateLimit-Reset": str(reset_epoch),
+                },
             )
 
-        return await call_next(request)
+        response = await call_next(request)
+        remaining = max(rate_limit - current, 0)
+        response.headers["X-RateLimit-Limit"] = str(rate_limit)
+        response.headers["X-RateLimit-Remaining"] = str(remaining)
+        response.headers["X-RateLimit-Reset"] = str(reset_epoch)
+        return response
 
     @app.middleware("http")
     async def request_logging(request: Request, call_next):
@@ -68,6 +82,7 @@ def create_app() -> FastAPI:
         start_time = time.perf_counter()
         response = await call_next(request)
         latency_ms = (time.perf_counter() - start_time) * 1000
+        request.state.latency_ms = latency_ms
         response.headers["X-Request-ID"] = request_id
         response.headers["X-Trace-ID"] = trace_id
         logger.info(
@@ -81,7 +96,31 @@ def create_app() -> FastAPI:
                 "latency_ms": round(latency_ms, 2),
             },
         )
+        api_key_context = getattr(request.state, "api_key_context", None)
+        if api_key_context is not None:
+            try:
+                async with async_session_maker() as session:
+                    usage = UsageLog(
+                        api_key_id=api_key_context.id,
+                        endpoint=request.url.path,
+                        tokens_used=None,
+                        latency_ms=int(round(latency_ms)),
+                    )
+                    session.add(usage)
+                    await session.commit()
+            except Exception:
+                logger.exception("usage logging failed", extra={"trace_id": trace_id})
         return response
+
+    @app.exception_handler(RequestValidationError)
+    async def validation_exception_handler(request: Request, exc: RequestValidationError):
+        trace_id = getattr(request.state, "trace_id", "")
+        error = ErrorResponse(
+            error_code="validation_error",
+            message="Invalid request payload.",
+            trace_id=trace_id,
+        )
+        return JSONResponse(status_code=400, content=error.model_dump())
 
     app.include_router(routes.router)
     return app

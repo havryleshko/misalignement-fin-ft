@@ -1,7 +1,8 @@
 import hashlib
 from dataclasses import dataclass
 
-from fastapi import HTTPException, Request
+from fastapi import Depends, HTTPException, Request
+from fastapi.security import APIKeyHeader
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -12,6 +13,9 @@ from backend.models.entities import ApiKey
 class ApiKeyContext:
     id: int
     rate_limit: int | None
+
+
+api_key_header = APIKeyHeader(name="X-API-Key", auto_error=False)
 
 
 def _hash_api_key(raw_key: str, salt: str) -> str:
@@ -41,7 +45,9 @@ async def authenticate_api_key(
     return api_key_context
 
 
-async def require_api_key(request: Request) -> ApiKeyContext:
+async def require_api_key(
+    request: Request, _api_key_header: str | None = Depends(api_key_header)
+) -> ApiKeyContext:
     existing = getattr(request.state, "api_key_context", None)
     if existing is not None:
         return existing

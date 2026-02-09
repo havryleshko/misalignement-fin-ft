@@ -29,8 +29,16 @@ class FilingsBundle(BaseModel):
     as_of: datetime
 
 
+class AnalystConsensus(BaseModel):
+    rating: str
+    mean_target: float | None
+    as_of: datetime
+    source: str
+
+
 class DataBundle(BaseModel):
     price_history: PriceHistory | None
     filings: FilingsBundle | None
+    analyst_consensus: AnalystConsensus | None
     sources: list[str]
     data_gaps: list[str]
