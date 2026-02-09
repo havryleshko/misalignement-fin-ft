@@ -153,7 +153,7 @@ Detects:
 
 **Strategy**
 - Retrieval-Augmented Generation (RAG)
-- Light finance-specific fine-tuning
+- Light finance-specific fine-tuning (Llama 3.2 3B quantized)
 - Strict JSON schema enforcement
 
 The model never “knows” — it reasons over retrieved facts.
@@ -196,9 +196,11 @@ Outputs are compliant by construction.
   "question": "Is this a good investment over the next 12 months?",
   "time_horizon": "12m"
 }
+```
 
-## Output contract - mandatory
+### Output contract - mandatory
 
+```json
 {
   "summary": "Apple shows moderate upside driven by earnings stability...",
   "expected_return": 8.2,
@@ -217,8 +219,9 @@ Outputs are compliant by construction.
   ],
   "disclaimer": "This output is probabilistic and not investment advice."
 }
+```
 
-note: if any field cannot be populated -> error
+If any output field cannot be populated or fails schema validation, return an error (no partial payload).
 
 9. Data Model (Minimal)
 customers

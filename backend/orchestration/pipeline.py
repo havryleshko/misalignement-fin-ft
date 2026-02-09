@@ -2,9 +2,8 @@ import logging
 import os
 import uuid
 from dataclasses import dataclass
-from statistics import pstdev
 from pydantic import BaseModel
-from backend.api.schemas import AnalyzeRequest, AnalyzeResponse
+from backend.api.schemas import AnalyzeRequest, AnalyzeResponse, Scenarios
 from backend.data.assembly import assemble_data
 from backend.data.schemas import DataBundle
 from backend.models.llm import (
@@ -13,8 +12,10 @@ from backend.models.llm import (
     deterministic_fallback,
     parse_llm_response,
 )
+from backend.orchestration.compliance import build_disclaimer, sanitize_summary
 from backend.orchestration.errors import PipelineError
 from backend.orchestration.intent_bias import IntentBiasResult, detect_bias
+from backend.orchestration.risk import RiskMetrics, compute_risk_metrics
 
 
 class ValidationOutput(BaseModel):
@@ -33,10 +34,15 @@ class LlmOutput(BaseModel):
 
 class RiskOutput(BaseModel):
     risk_flags: list[str]
+    expected_return: float
+    confidence_interval: list[float]
+    scenarios: dict[str, float]
+    probability_positive: float
 
 
 class ComplianceOutput(BaseModel):
     disclaimer: str
+    summary_override: str
 
 
 class PipelineResponse(BaseModel):
@@ -136,27 +142,39 @@ def _risk_estimation(context: PipelineContext) -> RiskOutput:
     if len(points) < 2:
         raise PipelineError("RISK_INPUT_INVALID", "Insufficient price history", context.trace_id)
 
-    returns: list[float] = []
-    for idx in range(len(points) - 1):
-        prev_close = points[idx + 1].close
-        if prev_close == 0:
-            continue
-        returns.append((points[idx].close - prev_close) / prev_close)
-
-    if returns:
-        volatility = pstdev(returns)
-        if volatility >= 0.05:
-            risk_flags.append("high_volatility")
-    else:
+    metrics: RiskMetrics
+    try:
+        metrics = compute_risk_metrics(bundle.price_history)
+    except ValueError:
+        metrics = RiskMetrics(
+            expected_return=0.0,
+            confidence_interval=[0.0, 0.0],
+            scenarios={"bull": 0.0, "base": 0.0, "bear": 0.0},
+            probability_positive=0.0,
+            volatility=0.0,
+            max_drawdown=0.0,
+        )
         risk_flags.append("volatility_unavailable")
 
-    return RiskOutput(risk_flags=risk_flags)
+    if metrics.volatility >= 0.05:
+        risk_flags.append("high_volatility")
+    if metrics.max_drawdown >= 0.2:
+        risk_flags.append("high_drawdown")
+
+    return RiskOutput(
+        risk_flags=risk_flags,
+        expected_return=metrics.expected_return,
+        confidence_interval=metrics.confidence_interval,
+        scenarios=metrics.scenarios,
+        probability_positive=metrics.probability_positive,
+    )
 
 
 def _compliance_filter(context: PipelineContext) -> ComplianceOutput:
     if not context.llm:
         raise PipelineError("PIPELINE_STATE", "Model output missing", context.trace_id)
-    return ComplianceOutput(disclaimer="This output is probabilistic and not advice.")
+    summary = sanitize_summary(context.llm.response.summary)
+    return ComplianceOutput(disclaimer=build_disclaimer(), summary_override=summary)
 
 
 def _assemble_response(context: PipelineContext) -> AnalyzeResponse:
@@ -176,17 +194,25 @@ def _assemble_response(context: PipelineContext) -> AnalyzeResponse:
             "MODEL_OUTPUT_INVALID", "Model output missing required sources", context.trace_id
         )
 
-    if context.intent_bias and context.intent_bias.bias_notice:
-        if response.bias_notice is None:
-            raise PipelineError(
-                "MODEL_OUTPUT_INVALID", "Missing bias_notice in model output", context.trace_id
-            )
-
+    response.expected_return = context.risk.expected_return
+    response.confidence_interval = context.risk.confidence_interval
+    response.scenarios = Scenarios.model_validate(context.risk.scenarios)
+    response.probability_positive = context.risk.probability_positive
     response.risk_flags = list({*response.risk_flags, *context.risk.risk_flags})
     response.disclaimer = context.compliance.disclaimer
-    if context.intent_bias and context.intent_bias.bias_notice:
-        response.bias_notice = context.intent_bias.bias_notice
-    return response
+    response.summary = context.compliance.summary_override
+    response.bias_notice = (
+        context.intent_bias.bias_notice
+        if context.intent_bias and context.intent_bias.bias_notice
+        else "No notable prompt framing detected."
+    )
+
+    try:
+        return AnalyzeResponse.model_validate(response.model_dump())
+    except Exception as exc:
+        raise PipelineError(
+            "MODEL_OUTPUT_INVALID", f"Final output schema validation failed: {exc}", context.trace_id
+        ) from exc
 
 
 def run_pipeline(request: AnalyzeRequest, trace_id: str | None = None) -> AnalyzeResponse:

@@ -1,5 +1,6 @@
 import json
 from datetime import datetime
+from typing import Any
 import httpx
 from backend.api.schemas import AnalyzeResponse
 from backend.config import load_config
@@ -47,6 +48,15 @@ def build_prompt(
         for filing in bundle.filings.filings:
             filings_lines.append(f"- {filing.type} {filing.period} {filing.url}")
 
+    analyst_consensus = None
+    if bundle.analyst_consensus:
+        analyst_consensus = {
+            "rating": bundle.analyst_consensus.rating,
+            "mean_target": bundle.analyst_consensus.mean_target,
+            "as_of": bundle.analyst_consensus.as_of.isoformat(),
+            "source": bundle.analyst_consensus.source,
+        }
+
     sources_lines = "\n".join(f"- {s}" for s in bundle.sources)
     bias_notice = intent_bias.bias_notice if intent_bias else None
 
@@ -58,7 +68,7 @@ def build_prompt(
         "\"probability_positive\": number, "
         "\"scenarios\": {\"bull\": number, \"base\": number, \"bear\": number}, "
         "\"risk_flags\": [string], "
-        "\"bias_notice\": string|null, "
+        "\"bias_notice\": string, "
         "\"sources\": [string], "
         "\"disclaimer\": string"
         "}"
@@ -75,11 +85,11 @@ Question:
 Bias notice (if any):
 {bias_notice}
 
-Latest price point:
-{latest_price}
-
-Filings:
-{chr(10).join(filings_lines) if filings_lines else "None"}
+Facts:
+- Latest price point: {latest_price}
+- Filings: {chr(10).join(filings_lines) if filings_lines else "None"}
+- Analyst consensus: {json.dumps(analyst_consensus) if analyst_consensus else "None"}
+- Data gaps: {", ".join(bundle.data_gaps) if bundle.data_gaps else "None"}
 
 Sources (must be included in output as-is, at least one):
 {sources_lines}
@@ -87,9 +97,39 @@ Sources (must be included in output as-is, at least one):
     return prompt
 
 
+def _extract_json_payload(text: str) -> Any:
+    cleaned = text.strip()
+    if cleaned.startswith("```"):
+        cleaned = cleaned.strip("`")
+        if cleaned.lower().startswith("json"):
+            cleaned = cleaned[4:].lstrip()
+
+    start_idx = cleaned.find("{")
+    if start_idx == -1:
+        raise ValueError("No JSON object found")
+
+    depth = 0
+    end_idx = None
+    for idx in range(start_idx, len(cleaned)):
+        ch = cleaned[idx]
+        if ch == "{":
+            depth += 1
+        elif ch == "}":
+            depth -= 1
+            if depth == 0:
+                end_idx = idx
+                break
+
+    if end_idx is None:
+        raise ValueError("Unterminated JSON object")
+
+    payload = cleaned[start_idx : end_idx + 1]
+    return json.loads(payload)
+
+
 def parse_llm_response(text: str, trace_id: str) -> AnalyzeResponse:
     try:
-        raw = json.loads(text)
+        raw = _extract_json_payload(text)
     except Exception as exc:
         raise PipelineError(
             "MODEL_OUTPUT_INVALID", f"Invalid JSON: {exc}", trace_id
@@ -112,7 +152,11 @@ def deterministic_fallback(
         probability_positive=0.0,
         scenarios={"bull": 0.0, "base": 0.0, "bear": 0.0},
         risk_flags=[],
-        bias_notice=intent_bias.bias_notice if intent_bias else None,
+        bias_notice=(
+            intent_bias.bias_notice
+            if intent_bias and intent_bias.bias_notice
+            else "No notable prompt framing detected."
+        ),
         sources=bundle.sources,
         disclaimer="This output is probabilistic and not advice.",
     )

@@ -15,15 +15,7 @@ EMOTIONAL_PHRASES = [
 ]
 
 LEADING_PHRASES = [
-    "isn't it true",
-    "is it not true",
-    "obviously",
-    "surely",
-    "don't you agree",
-    "wouldn't you agree",
-    "clearly",
-    "everyone knows",
-    "you must admit",
+    "smart money’s going", "value over growth", "structural asset", "healthy positioning reset", "pioneer in the crypto space", "proud to partner", "just getting started", "breadth matters now", "fundamentals stay intact", "opportunity or danger zone", "multi-asset platform", "curated Smart Portfolios", "Market milestone", "all eyes could be on", "Commodities Rally Alert", "on the move", "Innovation meets the fast lane", "Heavyweights step up", "all eyes on 2026 guidance", "AI spend", "margin moves", "structural shift", "surge past $5,000", "Big week for earnings", "pricing power", "cost control", "2026 vibes", "partnership officially takes off", "isn't it true", "surely", "obviously"
 ]
 
 NEUTRAL_PREFIX = "Provide an objective, data-grounded assessment. "

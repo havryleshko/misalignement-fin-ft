@@ -1,4 +1,4 @@
-from pydantic import BaseModel, ConfigDict, Field, conlist
+from pydantic import BaseModel, ConfigDict, Field, conlist, model_validator
 
 
 class AnalyzeRequest(BaseModel):
@@ -24,15 +24,22 @@ class Scenarios(BaseModel):
 
 class AnalyzeResponse(BaseModel):
     model_config = ConfigDict(extra="forbid")
-    summary: str
+    summary: str = Field(min_length=1)
     expected_return: float
     confidence_interval: conlist(float, min_length=2, max_length=2)
-    probability_positive: float
+    probability_positive: float = Field(ge=0.0, le=1.0)
     scenarios: Scenarios
     risk_flags: list[str]
-    bias_notice: str | None
+    bias_notice: str = Field(min_length=1)
     sources: list[str] = Field(min_length=1)
-    disclaimer: str
+    disclaimer: str = Field(min_length=1)
+
+    @model_validator(mode="after")
+    def _validate_confidence_interval(self) -> "AnalyzeResponse":
+        lower, upper = self.confidence_interval
+        if lower > upper:
+            raise ValueError("confidence_interval must be ordered [min, max]")
+        return self
 
 
 class ErrorResponse(BaseModel):

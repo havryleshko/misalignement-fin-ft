@@ -6,6 +6,7 @@ from backend.api.schemas import AnalyzeRequest
 from backend.data.schemas import DataBundle, Filing, FilingsBundle, PriceHistory, PricePoint
 from backend.orchestration.errors import PipelineError
 from backend.orchestration.pipeline import run_pipeline
+from backend.orchestration.risk import RiskMetrics
 
 
 def _sample_bundle() -> DataBundle:
@@ -70,9 +71,10 @@ def test_pipeline_success(monkeypatch):
         )
     )
 
-    assert response.disclaimer == "This output is probabilistic and not advice."
+    assert response.disclaimer == "DISCLAIMER: This output is probabilistic and not advice."
     assert "high_volatility" in response.risk_flags
     assert response.sources
+    assert response.bias_notice
 
 
 def test_pipeline_data_unavailable(monkeypatch):
@@ -95,3 +97,37 @@ def test_pipeline_data_unavailable(monkeypatch):
         )
 
     assert exc.value.error_code == "DATA_UNAVAILABLE"
+
+
+def test_pipeline_rejects_invalid_final_contract(monkeypatch):
+    def fake_assemble_data(_ticker: str, _trace_id: str) -> DataBundle:
+        return _sample_bundle()
+
+    monkeypatch.setenv("ENV", "test")
+    monkeypatch.setattr(
+        "backend.orchestration.pipeline.assemble_data", fake_assemble_data
+    )
+    monkeypatch.setattr(
+        "backend.orchestration.pipeline.compute_risk_metrics",
+        lambda _history: RiskMetrics(
+            expected_return=0.01,
+            confidence_interval=[0.05, -0.05],
+            scenarios={"bull": 0.1, "base": 0.02, "bear": -0.04},
+            probability_positive=1.2,
+            volatility=0.0,
+            max_drawdown=0.0,
+        ),
+    )
+
+    with pytest.raises(PipelineError) as exc:
+        run_pipeline(
+            AnalyzeRequest(
+                ticker="AAPL",
+                question="Is this a good investment over the next 12 months?",
+                time_horizon="12m",
+            ),
+            trace_id="trace-test",
+        )
+
+    assert exc.value.error_code == "MODEL_OUTPUT_INVALID"
+    assert "Final output schema validation failed" in exc.value.message
