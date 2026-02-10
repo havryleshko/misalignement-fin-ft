@@ -60,9 +60,18 @@ def test_sanitize_summary_removes_guarantees(summary, expected):
 
 
 def test_build_disclaimer_is_machine_readable():
-    assert build_disclaimer().startswith("DISCLAIMER:")
+    assert build_disclaimer() == "This output is probabilistic and not investment advice."
 
 
 def test_sanitize_summary_appends_uncertainty_when_missing():
     summary = "The company has steady revenue growth."
     assert sanitize_summary(summary).endswith("Outcomes are uncertain.")
+
+
+def test_monte_carlo_risk_metrics_are_reproducible_in_test_env(monkeypatch):
+    monkeypatch.setenv("ENV", "test")
+    monkeypatch.setenv("RISK_MONTE_CARLO_SIMS", "500")
+    first = compute_risk_metrics(_price_history())
+    second = compute_risk_metrics(_price_history())
+    assert first.confidence_interval == second.confidence_interval
+    assert first.scenarios == second.scenarios

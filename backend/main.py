@@ -14,6 +14,7 @@ from backend.api import routes
 from backend.config import load_config
 from backend.models.db import async_session_maker
 from backend.models.entities import UsageLog
+from backend.orchestration.metrics import mark_analyze_attempt, mark_analyze_success
 
 
 def create_app() -> FastAPI:
@@ -23,6 +24,21 @@ def create_app() -> FastAPI:
     app.state.redis = redis.from_url(config.redis_url, decode_responses=True)
 
     logger = logging.getLogger("misalignment")
+
+    @app.middleware("http")
+    async def enforce_https(request: Request, call_next):
+        if not config.require_https or config.env in ("local", "development", "test"):
+            return await call_next(request)
+
+        forwarded_proto = request.headers.get("X-Forwarded-Proto", "")
+        if forwarded_proto:
+            scheme = forwarded_proto.split(",")[0].strip().lower()
+        else:
+            scheme = request.url.scheme.lower()
+
+        if scheme != "https":
+            return JSONResponse(status_code=400, content={"detail": "HTTPS required"})
+        return await call_next(request)
 
     @app.middleware("http")
     async def auth_rate_limit(request: Request, call_next):
@@ -36,6 +52,8 @@ def create_app() -> FastAPI:
                 )
 
         rate_limit = api_key_context.rate_limit or config.rate_limit_rpm
+        if request.url.path == "/analyze":
+            mark_analyze_attempt(api_key_context.id)
         current_window = int(time.time() // 60)
         redis_key = f"rate:{api_key_context.id}:{current_window}"
 
@@ -67,6 +85,13 @@ def create_app() -> FastAPI:
             )
 
         response = await call_next(request)
+        api_key_context = getattr(request.state, "api_key_context", None)
+        if (
+            request.url.path == "/analyze"
+            and response.status_code == 200
+            and api_key_context is not None
+        ):
+            mark_analyze_success(api_key_context.id)
         remaining = max(rate_limit - current, 0)
         response.headers["X-RateLimit-Limit"] = str(rate_limit)
         response.headers["X-RateLimit-Remaining"] = str(remaining)
@@ -104,7 +129,7 @@ def create_app() -> FastAPI:
                         api_key_id=api_key_context.id,
                         endpoint=request.url.path,
                         tokens_used=None,
-                        latency_ms=int(round(latency_ms)),
+                        latency=int(round(latency_ms)),
                     )
                     session.add(usage)
                     await session.commit()

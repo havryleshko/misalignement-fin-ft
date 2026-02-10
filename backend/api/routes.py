@@ -4,6 +4,7 @@ from fastapi.responses import JSONResponse
 from backend.api.auth import ApiKeyContext, require_api_key
 from backend.api.schemas import AnalyzeRequest, AnalyzeResponse, ErrorResponse
 from backend.orchestration.errors import PipelineError
+from backend.orchestration.metrics import mark_analyze_error
 from backend.orchestration.pipeline import run_pipeline
 
 
@@ -30,6 +31,7 @@ def analyze(
         result = run_pipeline(payload, trace_id=trace_id)
         return JSONResponse(status_code=200, content=result.model_dump())
     except PipelineError as exc:
+        mark_analyze_error(exc.error_code)
         error = ErrorResponse(
             error_code=exc.error_code, message=exc.message, trace_id=exc.trace_id
         )

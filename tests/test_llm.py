@@ -118,7 +118,7 @@ def test_parse_llm_response_accepts_code_fenced_json():
   "risk_flags": ["high_volatility"],
   "bias_notice": "No notable prompt framing detected.",
   "sources": ["alpha_vantage"],
-  "disclaimer": "This output is probabilistic and not advice."
+  "disclaimer": "This output is probabilistic and not investment advice."
 }
 ```
 """.strip()

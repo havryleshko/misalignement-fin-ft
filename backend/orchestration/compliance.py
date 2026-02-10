@@ -27,4 +27,4 @@ def sanitize_summary(summary: str) -> str:
 
 
 def build_disclaimer() -> str:
-    return "DISCLAIMER: This output is probabilistic and not advice."
+    return "This output is probabilistic and not investment advice."

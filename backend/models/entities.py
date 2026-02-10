@@ -48,7 +48,7 @@ class UsageLog(Base):
     )
     endpoint: Mapped[str] = mapped_column(Text, nullable=False)
     tokens_used: Mapped[int | None] = mapped_column(Integer, nullable=True)
-    latency_ms: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    latency: Mapped[int | None] = mapped_column(Integer, nullable=True)
     timestamp: Mapped[object] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )

@@ -18,6 +18,8 @@ DEFAULT_LLM_MODEL = "llama3"
 DEFAULT_LLM_TEMPERATURE = 0.2
 DEFAULT_LLM_MAX_TOKENS = 800
 DEFAULT_OLLAMA_HOST = "http://localhost:11434"
+DEFAULT_REQUIRE_HTTPS = True
+DEFAULT_SEC_USER_AGENT = "MisalignmentEngine/0.1 (public-api)"
 
 
 @dataclass(frozen=True)
@@ -34,6 +36,20 @@ class Config:
     llm_temperature: float = DEFAULT_LLM_TEMPERATURE
     llm_max_tokens: int = DEFAULT_LLM_MAX_TOKENS
     ollama_host: str = DEFAULT_OLLAMA_HOST
+    require_https: bool = DEFAULT_REQUIRE_HTTPS
+    sec_user_agent: str = DEFAULT_SEC_USER_AGENT
+
+
+def _get_bool_env(name: str, default: bool) -> bool:
+    value = os.getenv(name)
+    if value is None or value.strip() == "":
+        return default
+    normalized = value.strip().lower()
+    if normalized in ("1", "true", "yes", "on"):
+        return True
+    if normalized in ("0", "false", "no", "off"):
+        return False
+    raise ValueError(f"Invalid boolean for env var {name}: {value}")
 
 
 def _load_dotenv_if_local(env: str) -> None:
@@ -105,5 +121,8 @@ def load_config() -> Config:
         ),
         llm_max_tokens=_get_int_env("LLM_MAX_TOKENS", DEFAULT_LLM_MAX_TOKENS),
         ollama_host=os.getenv("OLLAMA_HOST", DEFAULT_OLLAMA_HOST),
+        require_https=_get_bool_env("REQUIRE_HTTPS", DEFAULT_REQUIRE_HTTPS),
+        sec_user_agent=os.getenv("SEC_USER_AGENT", DEFAULT_SEC_USER_AGENT).strip()
+        or DEFAULT_SEC_USER_AGENT,
     )
     return config

@@ -158,5 +158,5 @@ def deterministic_fallback(
             else "No notable prompt framing detected."
         ),
         sources=bundle.sources,
-        disclaimer="This output is probabilistic and not advice.",
+        disclaimer="This output is probabilistic and not investment advice.",
     )

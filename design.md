@@ -241,7 +241,7 @@ tokens_used
 latency
 timestamp
 
-## repo structure
+10. ## repo structure
 
 misalignment-fin-ft/
 ├── backend/

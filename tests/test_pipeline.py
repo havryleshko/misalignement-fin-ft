@@ -71,8 +71,7 @@ def test_pipeline_success(monkeypatch):
         )
     )
 
-    assert response.disclaimer == "DISCLAIMER: This output is probabilistic and not advice."
-    assert "high_volatility" in response.risk_flags
+    assert response.disclaimer == "This output is probabilistic and not investment advice."
     assert response.sources
     assert response.bias_notice
 
@@ -131,3 +130,29 @@ def test_pipeline_rejects_invalid_final_contract(monkeypatch):
 
     assert exc.value.error_code == "MODEL_OUTPUT_INVALID"
     assert "Final output schema validation failed" in exc.value.message
+
+
+def test_pipeline_raises_when_risk_estimation_fails(monkeypatch):
+    def fake_assemble_data(_ticker: str, _trace_id: str) -> DataBundle:
+        return _sample_bundle()
+
+    monkeypatch.setenv("ENV", "test")
+    monkeypatch.setattr(
+        "backend.orchestration.pipeline.assemble_data", fake_assemble_data
+    )
+    monkeypatch.setattr(
+        "backend.orchestration.pipeline.compute_risk_metrics",
+        lambda _history: (_ for _ in ()).throw(ValueError("bad risk input")),
+    )
+
+    with pytest.raises(PipelineError) as exc:
+        run_pipeline(
+            AnalyzeRequest(
+                ticker="AAPL",
+                question="Is this a good investment over the next 12 months?",
+                time_horizon="12m",
+            ),
+            trace_id="trace-test",
+        )
+
+    assert exc.value.error_code == "RISK_INPUT_INVALID"

@@ -14,6 +14,8 @@ services:
       RATE_LIMIT_RPM: ${RATE_LIMIT_RPM:-60}
       CACHE_TTL_SECONDS: ${CACHE_TTL_SECONDS:-300}
       ENV: ${ENV:-local}
+      REQUIRE_HTTPS: ${REQUIRE_HTTPS:-false}
+      SEC_USER_AGENT: ${SEC_USER_AGENT:-MisalignmentEngine/0.1 (public-api)}
     depends_on:
       - postgres
       - redis

@@ -1,5 +1,7 @@
 from dataclasses import dataclass
 import math
+import os
+import random
 from statistics import mean, pstdev
 from backend.data.schemas import PriceHistory
 
@@ -54,6 +56,24 @@ def _compute_returns(prices: list[float]) -> list[float]:
     return returns
 
 
+def _simulate_returns(
+    expected_return: float,
+    volatility: float,
+    simulations: int,
+    seed: int | None,
+) -> list[float]:
+    if simulations <= 0:
+        raise ValueError("Simulation count must be positive")
+    if volatility < 0:
+        raise ValueError("Volatility must be non-negative")
+
+    if volatility == 0:
+        return [expected_return for _ in range(simulations)]
+
+    rng = random.Random(seed)
+    return [rng.gauss(expected_return, volatility) for _ in range(simulations)]
+
+
 def compute_risk_metrics(price_history: PriceHistory) -> RiskMetrics:
     closes_latest_first = [point.close for point in price_history.points]
     closes = list(reversed(closes_latest_first))
@@ -67,16 +87,27 @@ def compute_risk_metrics(price_history: PriceHistory) -> RiskMetrics:
     returns_sorted = sorted(returns)
     expected = mean(returns)
     volatility = pstdev(returns)
+    simulations = int(os.getenv("RISK_MONTE_CARLO_SIMS", "2000"))
+    seed = 42 if os.getenv("ENV") == "test" else None
+    simulated_returns = _simulate_returns(
+        expected_return=expected,
+        volatility=volatility,
+        simulations=simulations,
+        seed=seed,
+    )
+    simulated_sorted = sorted(simulated_returns)
     confidence_interval = [
-        _percentile(returns_sorted, 5),
-        _percentile(returns_sorted, 95),
+        _percentile(simulated_sorted, 5),
+        _percentile(simulated_sorted, 95),
     ]
     scenarios = {
-        "bull": _percentile(returns_sorted, 90),
-        "base": _percentile(returns_sorted, 50),
-        "bear": _percentile(returns_sorted, 10),
+        "bull": _percentile(simulated_sorted, 90),
+        "base": _percentile(simulated_sorted, 50),
+        "bear": _percentile(simulated_sorted, 10),
     }
-    probability_positive = sum(1 for r in returns if r > 0) / len(returns)
+    probability_positive = sum(1 for r in simulated_returns if r > 0) / len(
+        simulated_returns
+    )
     max_drawdown = _compute_drawdown(closes)
     return RiskMetrics(
         expected_return=expected,

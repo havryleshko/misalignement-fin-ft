@@ -12,7 +12,6 @@ SEC_TICKER_MAP_URL = "https://www.sec.gov/files/company_tickers.json"
 SEC_SUBMISSIONS_URL = "https://data.sec.gov/submissions/CIK{cik}.json"
 SEC_ARCHIVES_BASE = "https://www.sec.gov/Archives/edgar/data"
 SEC_CACHE_PREFIX = "edgar"
-SEC_USER_AGENT = "MisalignmentEngine/0.1 (contact: alexhavryleshko@gmail.com)"
 
 
 def _get_redis_client() -> redis.Redis:
@@ -46,8 +45,9 @@ def _cache_set(ticker: str, bundle: FilingsBundle, citations: list[str]) -> None
 
 
 def _http_client() -> httpx.Client:
+    config = load_config()
     timeout = httpx.Timeout(10.0)
-    headers = {"User-Agent": SEC_USER_AGENT}
+    headers = {"User-Agent": config.sec_user_agent}
     return httpx.Client(timeout=timeout, headers=headers)
 
 

@@ -15,6 +15,7 @@ from backend.models.llm import (
 from backend.orchestration.compliance import build_disclaimer, sanitize_summary
 from backend.orchestration.errors import PipelineError
 from backend.orchestration.intent_bias import IntentBiasResult, detect_bias
+from backend.orchestration.metrics import record_response_quality
 from backend.orchestration.risk import RiskMetrics, compute_risk_metrics
 
 
@@ -145,16 +146,12 @@ def _risk_estimation(context: PipelineContext) -> RiskOutput:
     metrics: RiskMetrics
     try:
         metrics = compute_risk_metrics(bundle.price_history)
-    except ValueError:
-        metrics = RiskMetrics(
-            expected_return=0.0,
-            confidence_interval=[0.0, 0.0],
-            scenarios={"bull": 0.0, "base": 0.0, "bear": 0.0},
-            probability_positive=0.0,
-            volatility=0.0,
-            max_drawdown=0.0,
-        )
-        risk_flags.append("volatility_unavailable")
+    except ValueError as exc:
+        raise PipelineError(
+            "RISK_INPUT_INVALID",
+            f"Risk estimation failed: {exc}",
+            context.trace_id,
+        ) from exc
 
     if metrics.volatility >= 0.05:
         risk_flags.append("high_volatility")
@@ -208,7 +205,9 @@ def _assemble_response(context: PipelineContext) -> AnalyzeResponse:
     )
 
     try:
-        return AnalyzeResponse.model_validate(response.model_dump())
+        validated = AnalyzeResponse.model_validate(response.model_dump())
+        record_response_quality(validated, required_sources=required_sources)
+        return validated
     except Exception as exc:
         raise PipelineError(
             "MODEL_OUTPUT_INVALID", f"Final output schema validation failed: {exc}", context.trace_id
