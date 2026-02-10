@@ -25,6 +25,14 @@ dev = [
   "pytest",
 ]
 
+[project.scripts]
+build-ft-dataset = "backend.scripts.dataset.build:main"
+generate-ft-synthetic = "backend.scripts.dataset.generate:main"
+ingest-ft-traces = "backend.scripts.dataset.ingest_traces:main"
+merge-ft-dataset = "backend.scripts.dataset.merge:main"
+validate-ft-dataset = "backend.scripts.dataset.validate:main"
+split-ft-dataset = "backend.scripts.dataset.split:main"
+
 [tool.setuptools.packages.find]
 include = ["backend*"]
 exclude = ["infra*", "docs*"]
