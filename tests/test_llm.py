@@ -59,13 +59,22 @@ def test_build_prompt_includes_schema_and_sources():
     )
     prompt = build_prompt(bundle, "Is this a good investment?", intent_bias)
 
-    assert "Return ONLY valid JSON" in prompt
-    assert "\"summary\": string" in prompt
-    assert "Sources (must be included in output as-is" in prompt
-    assert "- alpha_vantage" in prompt
-    assert "- sec_edgar" in prompt
-    assert "analyst_consensus" in prompt
-    assert "Data gaps" in prompt
+    assert "SYSTEM:" in prompt
+    assert "You are a finance risk analysis engine." in prompt
+    assert "Rules:" in prompt
+    assert "- Use only the provided data" in prompt
+    assert "- Never hallucinate facts" in prompt
+    assert "- Express uncertainty explicitly" in prompt
+    assert "- Never provide guarantees" in prompt
+    assert "- Output ONLY valid JSON matching the schema" in prompt
+    assert "USER:" in prompt
+    assert "<context>" in prompt
+    assert "retrieved_market_data:" in prompt
+    assert "retrieved_sec_filings:" in prompt
+    assert "required_sources" in prompt
+    assert "alpha_vantage" in prompt
+    assert "sec_edgar" in prompt
+    assert "Question:" in prompt
 
 
 def test_parse_llm_response_rejects_invalid_json():
@@ -95,6 +104,27 @@ def test_parse_llm_response_rejects_null_bias_notice():
   "scenarios": {"bull": 0.12, "base": 0.05, "bear": -0.03},
   "risk_flags": ["high_volatility"],
   "bias_notice": null,
+  "sources": ["alpha_vantage"],
+  "disclaimer": "This output is probabilistic and not investment advice."
+}
+""".strip()
+    with pytest.raises(PipelineError) as exc:
+        parse_llm_response(invalid_payload, "trace-test")
+
+    assert exc.value.error_code == "MODEL_OUTPUT_INVALID"
+    assert "Schema validation failed" in exc.value.message
+
+
+def test_parse_llm_response_rejects_disclaimer_mismatch():
+    invalid_payload = """
+{
+  "summary": "Example summary.",
+  "expected_return": 0.05,
+  "confidence_interval": [0.02, 0.08],
+  "probability_positive": 0.6,
+  "scenarios": {"bull": 0.12, "base": 0.05, "bear": -0.03},
+  "risk_flags": ["high_volatility"],
+  "bias_notice": "No notable prompt framing detected.",
   "sources": ["alpha_vantage"],
   "disclaimer": "This output is probabilistic and not advice."
 }

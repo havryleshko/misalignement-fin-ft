@@ -1,3 +1,5 @@
+from typing import Literal
+
 from pydantic import BaseModel, ConfigDict, Field, conlist, model_validator
 
 
@@ -32,7 +34,7 @@ class AnalyzeResponse(BaseModel):
     risk_flags: list[str]
     bias_notice: str = Field(min_length=1)
     sources: list[str] = Field(min_length=1)
-    disclaimer: str = Field(min_length=1)
+    disclaimer: Literal["This output is probabilistic and not investment advice."]
 
     @model_validator(mode="after")
     def _validate_confidence_interval(self) -> "AnalyzeResponse":

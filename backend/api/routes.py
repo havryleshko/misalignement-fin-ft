@@ -19,7 +19,7 @@ def health_check(_api_key: ApiKeyContext = Depends(require_api_key)) -> dict[str
 @router.post(
     "/analyze",
     response_model=AnalyzeResponse,
-    responses={400: {"model": ErrorResponse}},
+    responses={400: {"model": ErrorResponse}, 500: {"model": ErrorResponse}},
 )
 def analyze(
     request: Request,
@@ -36,3 +36,11 @@ def analyze(
             error_code=exc.error_code, message=exc.message, trace_id=exc.trace_id
         )
         return JSONResponse(status_code=400, content=error.model_dump())
+    except Exception:
+        mark_analyze_error("INTERNAL_ERROR")
+        error = ErrorResponse(
+            error_code="INTERNAL_ERROR",
+            message="Internal server error.",
+            trace_id=trace_id or "",
+        )
+        return JSONResponse(status_code=500, content=error.model_dump())

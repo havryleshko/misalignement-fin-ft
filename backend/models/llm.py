@@ -43,11 +43,6 @@ def build_prompt(
     if bundle.price_history and bundle.price_history.points:
         latest_price = bundle.price_history.points[0]
 
-    filings_lines: list[str] = []
-    if bundle.filings:
-        for filing in bundle.filings.filings:
-            filings_lines.append(f"- {filing.type} {filing.period} {filing.url}")
-
     analyst_consensus = None
     if bundle.analyst_consensus:
         analyst_consensus = {
@@ -57,42 +52,40 @@ def build_prompt(
             "source": bundle.analyst_consensus.source,
         }
 
-    sources_lines = "\n".join(f"- {s}" for s in bundle.sources)
-    bias_notice = intent_bias.bias_notice if intent_bias else None
+    filings_lines: list[str] = []
+    if bundle.filings:
+        for filing in bundle.filings.filings:
+            filings_lines.append(f"- {filing.type} {filing.period} {filing.url}")
 
-    schema_hint = (
-        "{"
-        "\"summary\": string, "
-        "\"expected_return\": number, "
-        "\"confidence_interval\": [number, number], "
-        "\"probability_positive\": number, "
-        "\"scenarios\": {\"bull\": number, \"base\": number, \"bear\": number}, "
-        "\"risk_flags\": [string], "
-        "\"bias_notice\": string, "
-        "\"sources\": [string], "
-        "\"disclaimer\": string"
-        "}"
-    )
+    retrieved_market_data = {
+        "latest_price_point": latest_price.model_dump(mode="json") if latest_price else None,
+        "analyst_consensus": analyst_consensus,
+        "data_gaps": bundle.data_gaps,
+        "required_sources": bundle.sources,
+        "bias_notice": intent_bias.bias_notice if intent_bias else None,
+    }
+    retrieved_sec_filings = "\n".join(filings_lines) if filings_lines else "None"
 
     prompt = f"""
-You are a finance analysis model. Use ONLY the facts below. Do NOT add outside knowledge.
-Return ONLY valid JSON that matches this schema exactly. Do not omit keys. Do not add extra keys.
-{schema_hint}
+SYSTEM:
+You are a finance risk analysis engine.
+Rules:
+- Use only the provided data
+- Never hallucinate facts
+- Express uncertainty explicitly
+- Never provide guarantees
+- Output ONLY valid JSON matching the schema
+
+USER:
+<context>
+retrieved_market_data:
+{json.dumps(retrieved_market_data, ensure_ascii=True)}
+retrieved_sec_filings:
+{retrieved_sec_filings}
+</context>
 
 Question:
 {question}
-
-Bias notice (if any):
-{bias_notice}
-
-Facts:
-- Latest price point: {latest_price}
-- Filings: {chr(10).join(filings_lines) if filings_lines else "None"}
-- Analyst consensus: {json.dumps(analyst_consensus) if analyst_consensus else "None"}
-- Data gaps: {", ".join(bundle.data_gaps) if bundle.data_gaps else "None"}
-
-Sources (must be included in output as-is, at least one):
-{sources_lines}
 """.strip()
     return prompt
 
