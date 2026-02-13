@@ -18,6 +18,13 @@ dependencies = [
   "python-dotenv",
   "requests-cache",
   "asyncpg",
+  "transformers",
+  "datasets",
+  "peft",
+  "trl",
+  "accelerate",
+  "torch",
+  "safetensors",
 ]
 
 [project.optional-dependencies]
@@ -32,6 +39,9 @@ ingest-ft-traces = "backend.scripts.dataset.ingest_traces:main"
 merge-ft-dataset = "backend.scripts.dataset.merge:main"
 validate-ft-dataset = "backend.scripts.dataset.validate:main"
 split-ft-dataset = "backend.scripts.dataset.split:main"
+train-ft-lora = "backend.scripts.training.train_lora:main"
+validate-ft-artifacts = "backend.scripts.training.validate_artifacts:main"
+validate-ft-dataset-gate = "backend.scripts.training.validate_dataset_gate:main"
 
 [tool.setuptools.packages.find]
 include = ["backend*"]

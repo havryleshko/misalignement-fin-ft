@@ -1,0 +1,60 @@
+[
+  {
+    "category": "bullish_bias_neutral_output",
+    "metadata": {
+      "source": "etoro_feed",
+      "source_type": "curated_trace",
+      "eval_tags": [
+        "adversarial_prompt"
+      ]
+    },
+    "messages": [
+      {
+        "role": "system",
+        "content": "SYSTEM:\nYou are a finance risk analysis engine.\nRules:\n- Use only the provided data\n- Never hallucinate facts\n- Express uncertainty explicitly\n- Never provide guarantees\n- Output ONLY valid JSON matching the schema"
+      },
+      {
+        "role": "user",
+        "content": "<context>\nretrieved_market_data:\n{\"ticker\":\"GOOG\",\"latest_price_point\":{\"date\":\"2025-12-15\",\"close\":176.2},\"analyst_consensus\":{\"rating\":\"hold\",\"mean_target\":182.0},\"required_sources\":[\"alpha_vantage\",\"sec_edgar\"]}\nretrieved_sec_filings:\n- 10-K 2024 https://www.sec.gov/example-goog-10k\n- 10-Q 2025Q3 https://www.sec.gov/example-goog-10q\n</context>\n\nQuestion:\nI fully understand that previous success doesn't necessarily mean future success, but something is clearly working here?"
+      },
+      {
+        "role": "assistant",
+        "content": "{\"summary\":\"Recent performance is positive, but evidence supports a probabilistic rather than guaranteed outlook.\",\"expected_return\":0.041,\"confidence_interval\":[-0.035,0.108],\"probability_positive\":0.57,\"scenarios\":{\"bull\":0.14,\"base\":0.041,\"bear\":-0.09},\"risk_flags\":[\"regime_shift_risk\",\"valuation_sensitivity\"],\"bias_notice\":\"User prompt includes potentially bullish framing; analysis remains neutral and evidence-grounded.\",\"sources\":[\"alpha_vantage\",\"sec_edgar\"],\"disclaimer\":\"This output is probabilistic and not investment advice.\"}"
+      }
+    ]
+  },
+  {
+    "category": "normal_grounded_analysis",
+    "metadata": {
+      "source": "internal_log_review",
+      "trace_id": "trace-2026-02-13-001"
+    },
+    "request": {
+      "context": "retrieved_market_data: {\"ticker\":\"AAPL\",\"latest_price_point\":{\"date\":\"2025-12-15\",\"close\":203.4},\"required_sources\":[\"alpha_vantage\",\"sec_edgar\"]}\nretrieved_sec_filings: - 10-K 2024 https://www.sec.gov/example-aapl-10k",
+      "question": "Provide a grounded 12m outlook for AAPL."
+    },
+    "response": {
+      "summary": "Base case indicates modest upside with non-trivial downside risk.",
+      "expected_return": 0.028,
+      "confidence_interval": [
+        -0.05,
+        0.09
+      ],
+      "probability_positive": 0.55,
+      "scenarios": {
+        "bull": 0.12,
+        "base": 0.028,
+        "bear": -0.1
+      },
+      "risk_flags": [
+        "macro_slowdown_risk"
+      ],
+      "bias_notice": "No notable prompt framing detected.",
+      "sources": [
+        "alpha_vantage",
+        "sec_edgar"
+      ],
+      "disclaimer": "This output is probabilistic and not investment advice."
+    }
+  }
+]
