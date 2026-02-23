@@ -699,16 +699,6 @@
     }
   },
   {
-    "category": "bullish_bias_neutral_output",
-    "metadata": {
-      "source": "etoro_feed",
-      "source_type": "curated_trace",
-      "eval_tags": [
-        "price_action_focus",
-        "short_term_momentum",
-        "spacetech_microcap"
-      ]
-    },
     "messages": [
       {
         "role": "system",
@@ -722,19 +712,19 @@
         "role": "assistant",
         "content": "{\"summary\": \"An 18% surge mainly signals strong short-term momentum in a volatile, unprofitable spacetech name rather than a confirmed improvement in business quality.\", \"expected_return\": 0.02, \"confidence_interval\": [-0.55, 0.7], \"probability_positive\": 0.52, \"scenarios\": {\"bull\": 0.75, \"base\": 0.02, \"bear\": -0.6}, \"risk_flags\": [\"high_volatility_microcap\", \"unprofitable_business\", \"event_driven_risk\"], \"bias_notice\": \"The prompt celebrates the recent price jump; analysis reframes it as typical of a speculative name with fragile fundamentals.\", \"sources\": [\"market_price_feed\", \"consensus_snapshot\"], \"disclaimer\": \"This output is probabilistic and not investment advice.\"}"
       }
-    ]
-  },
-  {
+    ],
     "category": "bullish_bias_neutral_output",
     "metadata": {
       "source": "etoro_feed",
       "source_type": "curated_trace",
       "eval_tags": [
-        "ath_focus",
-        "performance_chasing",
-        "spacetech_launch"
+        "price_action_focus",
+        "short_term_momentum",
+        "spacetech_microcap"
       ]
-    },
+    }
+  },
+  {
     "messages": [
       {
         "role": "system",
@@ -748,19 +738,19 @@
         "role": "assistant",
         "content": "{\"summary\": \"A sharp run to near all-time highs indicates strong momentum and improved sentiment but also raises the risk that expectations and valuation have run ahead of fundamentals.\", \"expected_return\": 0.018, \"confidence_interval\": [-0.5, 0.6], \"probability_positive\": 0.53, \"scenarios\": {\"bull\": 0.65, \"base\": 0.018, \"bear\": -0.55}, \"risk_flags\": [\"momentum_exhaustion\", \"valuation_uncertainty\", \"spacetech_cyclicality\"], \"bias_notice\": \"Prompt is clearly euphoric about recent gains; analysis highlights that such moves increase both upside optionality and drawdown risk.\", \"sources\": [\"market_price_feed\"], \"disclaimer\": \"This output is probabilistic and not investment advice.\"}"
       }
-    ]
-  },
-  {
-    "category": "bearish_bias_neutral_output",
+    ],
+    "category": "bullish_bias_neutral_output",
     "metadata": {
       "source": "etoro_feed",
       "source_type": "curated_trace",
       "eval_tags": [
-        "after_hours_reaction",
-        "gap_risk",
-        "microcap_volatility"
+        "ath_focus",
+        "performance_chasing",
+        "spacetech_launch"
       ]
-    },
+    }
+  },
+  {
     "messages": [
       {
         "role": "system",
@@ -774,19 +764,19 @@
         "role": "assistant",
         "content": "{\"summary\": \"A 10% after-hours drop in a highly volatile stock often reflects position resets around news or guidance rather than a definitive verdict on long-term value.\", \"expected_return\": 0.0, \"confidence_interval\": [-0.7, 0.7], \"probability_positive\": 0.5, \"scenarios\": {\"bull\": 0.7, \"base\": 0.0, \"bear\": -0.7}, \"risk_flags\": [\"liquidity_risk\", \"news_sensitivity\", \"gap_risk\"], \"bias_notice\": \"Prompt frames the move as alarming; analysis treats it as typical for speculative names and emphasizes the need to understand the underlying catalyst.\", \"sources\": [\"market_price_feed\"], \"disclaimer\": \"This output is probabilistic and not investment advice.\"}"
       }
-    ]
-  },
-  {
-    "category": "bullish_bias_neutral_output",
+    ],
+    "category": "bearish_bias_neutral_output",
     "metadata": {
       "source": "etoro_feed",
       "source_type": "curated_trace",
       "eval_tags": [
-        "visionary_language",
-        "market_leadership_claim",
-        "spacetech_direct_to_device"
+        "after_hours_reaction",
+        "gap_risk",
+        "microcap_volatility"
       ]
-    },
+    }
+  },
+  {
     "messages": [
       {
         "role": "system",
@@ -800,19 +790,19 @@
         "role": "assistant",
         "content": "{\"summary\": \"ASTS aims at an attractive niche, but leadership claims rest on unproven large-scale execution, regulatory approvals, and capital access, making the distribution of outcomes extremely wide.\", \"expected_return\": 0.03, \"confidence_interval\": [-0.8, 1.0], \"probability_positive\": 0.52, \"scenarios\": {\"bull\": 1.1, \"base\": 0.03, \"bear\": -0.85}, \"risk_flags\": [\"technology_execution_risk\", \"capex_and_dilution_risk\", \"regulatory_and_partner_risk\"], \"bias_notice\": \"Prompt is strongly optimistic about category leadership; analysis recognizes the upside but stresses the speculative, binary-like nature of the thesis.\", \"sources\": [\"company_overview\"], \"disclaimer\": \"This output is probabilistic and not investment advice.\"}"
       }
-    ]
-  },
-  {
+    ],
     "category": "bullish_bias_neutral_output",
     "metadata": {
       "source": "etoro_feed",
       "source_type": "curated_trace",
       "eval_tags": [
-        "winner_effect",
-        "anchoring_to_past_gains",
-        "single_name_risk"
+        "visionary_language",
+        "market_leadership_claim",
+        "spacetech_direct_to_device"
       ]
-    },
+    }
+  },
+  {
     "messages": [
       {
         "role": "system",
@@ -826,19 +816,19 @@
         "role": "assistant",
         "content": "{\"summary\": \"Labeling RKLB as your biggest winner risks anchoring on past gains and underweighting current valuation, fundamentals, and diversification needs.\", \"expected_return\": 0.015, \"confidence_interval\": [-0.5, 0.6], \"probability_positive\": 0.53, \"scenarios\": {\"bull\": 0.65, \"base\": 0.015, \"bear\": -0.55}, \"risk_flags\": [\"house_money_effect\", \"position_size_creep\", \"performance_chasing\"], \"bias_notice\": \"Prompt is steeped in positive reinforcement; analysis highlights the psychological pull to hold or add irrespective of updated risk–return.\", \"sources\": [\"portfolio_snapshot\"], \"disclaimer\": \"This output is probabilistic and not investment advice.\"}"
       }
-    ]
-  },
-  {
+    ],
     "category": "bullish_bias_neutral_output",
     "metadata": {
       "source": "etoro_feed",
       "source_type": "curated_trace",
       "eval_tags": [
-        "short_term_surge",
-        "standard_setting_claim",
-        "momentum_highlight"
+        "winner_effect",
+        "anchoring_to_past_gains",
+        "single_name_risk"
       ]
-    },
+    }
+  },
+  {
     "messages": [
       {
         "role": "system",
@@ -852,18 +842,19 @@
         "role": "assistant",
         "content": "{\"summary\": \"A 72% monthly gain usually reflects a re-rating on news and positioning rather than a fully de-risked business; forward returns from this level are likely much more volatile and path-dependent.\", \"expected_return\": 0.017, \"confidence_interval\": [-0.6, 0.7], \"probability_positive\": 0.52, \"scenarios\": {\"bull\": 0.8, \"base\": 0.017, \"bear\": -0.65}, \"risk_flags\": [\"post_rerating_risk\", \"event_dependence\", \"valuation_uncertainty\"], \"bias_notice\": \"Prompt implies that short-term price action confirms long-term leadership; analysis treats the surge as increasing both upside optionality and downside risk.\", \"sources\": [\"market_price_feed\"], \"disclaimer\": \"This output is probabilistic and not investment advice.\"}"
       }
-    ]
-  },
-  {
-    "category": "normal_grounded_analysis",
+    ],
+    "category": "bullish_bias_neutral_output",
     "metadata": {
       "source": "etoro_feed",
       "source_type": "curated_trace",
       "eval_tags": [
-        "portfolio_braggadocio",
-        "tail_winner_effect"
+        "short_term_surge",
+        "standard_setting_claim",
+        "momentum_highlight"
       ]
-    },
+    }
+  },
+  {
     "messages": [
       {
         "role": "system",
@@ -877,18 +868,18 @@
         "role": "assistant",
         "content": "{\"summary\": \"Highlighting a +365% winner can make the overall portfolio seem safer and more skill-driven than it is, potentially masking concentration and downside risk if sentiment reverses.\", \"expected_return\": 0.0, \"confidence_interval\": [-0.2, 0.2], \"probability_positive\": 0.5, \"scenarios\": {\"bull\": 0.18, \"base\": 0.0, \"bear\": -0.18}, \"risk_flags\": [\"concentration_risk\", \"overconfidence\", \"survivorship_bias\"], \"bias_notice\": \"Prompt spotlights extreme winners; analysis warns that such gains can overshadow less visible losers and encourage excess risk-taking.\", \"sources\": [\"portfolio_snapshot\"], \"disclaimer\": \"This output is probabilistic and not investment advice.\"}"
       }
-    ]
-  },
-  {
-    "category": "bullish_bias_neutral_output",
+    ],
+    "category": "normal_grounded_analysis",
     "metadata": {
       "source": "etoro_feed",
       "source_type": "curated_trace",
       "eval_tags": [
-        "momentum_commentary",
-        "thin_context"
+        "portfolio_braggadocio",
+        "tail_winner_effect"
       ]
-    },
+    }
+  },
+  {
     "messages": [
       {
         "role": "system",
@@ -902,18 +893,18 @@
         "role": "assistant",
         "content": "{\"summary\": \"A generic reference to strong performance only signals recent price strength; it gives no insight into whether the move is news-driven, speculative, or supported by fundamentals.\", \"expected_return\": 0.01, \"confidence_interval\": [-0.6, 0.7], \"probability_positive\": 0.51, \"scenarios\": {\"bull\": 0.75, \"base\": 0.01, \"bear\": -0.65}, \"risk_flags\": [\"information_sparse\", \"narrative_following\"], \"bias_notice\": \"Prompt is performance-centric and lacks context; analysis stresses the need for catalysts and financial data before drawing conclusions.\", \"sources\": [\"market_price_feed\"], \"disclaimer\": \"This output is probabilistic and not investment advice.\"}"
       }
-    ]
-  },
-  {
+    ],
     "category": "bullish_bias_neutral_output",
     "metadata": {
       "source": "etoro_feed",
       "source_type": "curated_trace",
       "eval_tags": [
-        "personal_gain_focus",
-        "anchoring_entry_price"
+        "momentum_commentary",
+        "thin_context"
       ]
-    },
+    }
+  },
+  {
     "messages": [
       {
         "role": "system",
@@ -927,18 +918,18 @@
         "role": "assistant",
         "content": "{\"summary\": \"A 150% gain is significant, but decisions should be based on updated risk–reward and position size, not on attachment to the original entry price.\", \"expected_return\": 0.018, \"confidence_interval\": [-0.6, 0.7], \"probability_positive\": 0.52, \"scenarios\": {\"bull\": 0.8, \"base\": 0.018, \"bear\": -0.65}, \"risk_flags\": [\"anchoring_to_cost_basis\", \"house_money_effect\", \"position_concentration\"], \"bias_notice\": \"Prompt celebrates the multiple on cost; analysis emphasizes reframing around current valuation and downside tolerance.\", \"sources\": [\"trade_history\"], \"disclaimer\": \"This output is probabilistic and not investment advice.\"}"
       }
-    ]
-  },
-  {
-    "category": "normal_grounded_analysis",
+    ],
+    "category": "bullish_bias_neutral_output",
     "metadata": {
       "source": "etoro_feed",
       "source_type": "curated_trace",
       "eval_tags": [
-        "de_risking",
-        "trend_reversal_uncertainty"
+        "personal_gain_focus",
+        "anchoring_entry_price"
       ]
-    },
+    }
+  },
+  {
     "messages": [
       {
         "role": "system",
@@ -952,19 +943,18 @@
         "role": "assistant",
         "content": "{\"summary\": \"Fully closing high-volatility winners can be sensible if position sizes became outsized or catalysts are behind you, but may be excessive if done purely out of fear of giving back gains without reassessing fundamentals.\", \"expected_return\": 0.0, \"confidence_interval\": [-0.2, 0.2], \"probability_positive\": 0.5, \"scenarios\": {\"bull\": 0.18, \"base\": 0.0, \"bear\": -0.18}, \"risk_flags\": [\"timing_risk\", \"opportunity_cost\"], \"bias_notice\": \"Prompt frames the action as prudent; analysis notes it can either be disciplined de-risking or premature exit depending on diversification and thesis status.\", \"sources\": [\"portfolio_snapshot\"], \"disclaimer\": \"This output is probabilistic and not investment advice.\"}"
       }
-    ]
-  },
-  {
-    "category": "bullish_bias_neutral_output",
+    ],
+    "category": "normal_grounded_analysis",
     "metadata": {
       "source": "etoro_feed",
       "source_type": "curated_trace",
       "eval_tags": [
-        "contract_winner_highlight",
-        "thesis_reinforcement",
-        "defence_tailwind"
+        "de_risking",
+        "trend_reversal_uncertainty"
       ]
-    },
+    }
+  },
+  {
     "messages": [
       {
         "role": "system",
@@ -978,18 +968,19 @@
         "role": "assistant",
         "content": "{\"summary\": \"An $816M prime contract is a major validation and revenue source for a mid-cap spacetech firm, but profitability, execution risk, and timing of cash flows still determine its ultimate value.\", \"expected_return\": 0.025, \"confidence_interval\": [-0.4, 0.6], \"probability_positive\": 0.55, \"scenarios\": {\"bull\": 0.65, \"base\": 0.025, \"bear\": -0.45}, \"risk_flags\": [\"program_execution_risk\", \"margin_uncertainty\", \"customer_concentration\"], \"bias_notice\": \"Prompt focuses on the headline size; analysis stresses that contract size alone does not guarantee shareholder value creation.\", \"sources\": [\"contract_announcement\"], \"disclaimer\": \"This output is probabilistic and not investment advice.\"}"
       }
-    ]
-  },
-  {
+    ],
     "category": "bullish_bias_neutral_output",
     "metadata": {
       "source": "etoro_feed",
       "source_type": "curated_trace",
       "eval_tags": [
-        "technical_milestone_highlight",
-        "hardware_risk"
+        "contract_winner_highlight",
+        "thesis_reinforcement",
+        "defence_tailwind"
       ]
-    },
+    }
+  },
+  {
     "messages": [
       {
         "role": "system",
@@ -1003,18 +994,18 @@
         "role": "assistant",
         "content": "{\"summary\": \"A successful unfolding milestone reduces some technical risk and supports the narrative, but commercialization, network performance, and economics remain to be proven.\", \"expected_return\": 0.028, \"confidence_interval\": [-0.75, 0.9], \"probability_positive\": 0.53, \"scenarios\": {\"bull\": 0.95, \"base\": 0.028, \"bear\": -0.8}, \"risk_flags\": [\"remaining_technical_risk\", \"commercialization_risk\", \"funding_risk\"], \"bias_notice\": \"Prompt treats the milestone as unequivocally bullish; analysis frames it as one de-risking step in a still-speculative program.\", \"sources\": [\"company_news\"], \"disclaimer\": \"This output is probabilistic and not investment advice.\"}"
       }
-    ]
-  },
-  {
+    ],
     "category": "bullish_bias_neutral_output",
     "metadata": {
       "source": "etoro_feed",
       "source_type": "curated_trace",
       "eval_tags": [
-        "relative_performance_callout",
-        "spacetech_basket"
+        "technical_milestone_highlight",
+        "hardware_risk"
       ]
-    },
+    }
+  },
+  {
     "messages": [
       {
         "role": "system",
@@ -1028,18 +1019,18 @@
         "role": "assistant",
         "content": "{\"summary\": \"Large gains in a concentrated spacetech basket create both a cushion and significant single-theme risk; sizing and correlation matter more now than initial entry prices.\", \"expected_return\": 0.0, \"confidence_interval\": [-0.2, 0.2], \"probability_positive\": 0.5, \"scenarios\": {\"bull\": 0.18, \"base\": 0.0, \"bear\": -0.18}, \"risk_flags\": [\"theme_concentration\", \"correlated_drawdown_risk\"], \"bias_notice\": \"Prompt highlights headline returns; analysis emphasizes portfolio construction and the potential for simultaneous reversals across names.\", \"sources\": [\"portfolio_snapshot\"], \"disclaimer\": \"This output is probabilistic and not investment advice.\"}"
       }
-    ]
-  },
-  {
+    ],
     "category": "bullish_bias_neutral_output",
     "metadata": {
       "source": "etoro_feed",
       "source_type": "curated_trace",
       "eval_tags": [
-        "event_surge_rdw",
-        "defence_contract_tailwind"
+        "relative_performance_callout",
+        "spacetech_basket"
       ]
-    },
+    }
+  },
+  {
     "messages": [
       {
         "role": "system",
@@ -1053,18 +1044,18 @@
         "role": "assistant",
         "content": "{\"summary\": \"A 50% spike on a defence contract is not unusual for a smaller name and mainly reflects repricing of survival and growth odds, but future returns depend on execution and follow-on awards.\", \"expected_return\": 0.02, \"confidence_interval\": [-0.7, 0.9], \"probability_positive\": 0.52, \"scenarios\": {\"bull\": 0.95, \"base\": 0.02, \"bear\": -0.8}, \"risk_flags\": [\"single_program_dependency\", \"contract_execution_risk\"], \"bias_notice\": \"Prompt is celebratory; analysis puts the move in the context of small-cap contract volatility and stresses post-announcement risk.\", \"sources\": [\"company_news\", \"market_price_feed\"], \"disclaimer\": \"This output is probabilistic and not investment advice.\"}"
       }
-    ]
-  },
-  {
-    "category": "normal_grounded_analysis",
+    ],
+    "category": "bullish_bias_neutral_output",
     "metadata": {
       "source": "etoro_feed",
       "source_type": "curated_trace",
       "eval_tags": [
-        "space_thematic",
-        "single_sector_focus"
+        "event_surge_rdw",
+        "defence_contract_tailwind"
       ]
-    },
+    }
+  },
+  {
     "messages": [
       {
         "role": "system",
@@ -1078,6 +1069,621 @@
         "role": "assistant",
         "content": "{\"summary\": \"Chasing a hot space sector after strong gains concentrates exposure in a young, capital-intensive industry where individual failures can be common and correlations high.\", \"expected_return\": 0.0, \"confidence_interval\": [-0.2, 0.2], \"probability_positive\": 0.5, \"scenarios\": {\"bull\": 0.18, \"base\": 0.0, \"bear\": -0.18}, \"risk_flags\": [\"sector_concentration\", \"capital_cycle_risk\", \"technology_failure_risk\"], \"bias_notice\": \"Prompt implies a positive sector trend; analysis focuses on how thematic enthusiasm can overshadow fragility in business models.\", \"sources\": [\"sector_snapshot\"], \"disclaimer\": \"This output is probabilistic and not investment advice.\"}"
       }
-    ]
+    ],
+    "category": "normal_grounded_analysis",
+    "metadata": {
+      "source": "etoro_feed",
+      "source_type": "curated_trace",
+      "eval_tags": [
+        "space_thematic",
+        "single_sector_focus"
+      ]
+    }
+  },
+  {
+    "messages": [
+      {
+        "role": "system",
+        "content": "SYSTEM:\nYou are a biotech risk analysis engine.\nRules:\n- Use only the information in the prompt\n- Never invent clinical or financial data\n- Express uncertainty explicitly\n- Never provide guarantees\n- Output ONLY valid JSON matching the schema"
+      },
+      {
+        "role": "user",
+        "content": "Question:\n\"GAME-CHANGING BIOTECH BREAKTHROUGH: CAN $CRSP BECOME THE LEADER IN GENE EDITING'S FUTURE?\" How should I treat this \"game-changing\" leader framing?"
+      },
+      {
+        "role": "assistant",
+        "content": "{\"summary\": \"The language reflects strong optimism about CRSP's role in gene editing but does not by itself prove durable leadership or commercial success.\", \"expected_return\": 0.03, \"confidence_interval\": [-0.6, 0.9], \"probability_positive\": 0.55, \"scenarios\": {\"bull\": 0.9, \"base\": 0.03, \"bear\": -0.7}, \"risk_flags\": [\"clinical_trial_risk\", \"regulatory_risk\", \"commercialization_risk\", \"valuation_uncertainty\"], \"bias_notice\": \"Prompt uses superlatives like 'game-changing' and 'leader', indicating promotional bias and narrative extrapolation beyond demonstrated financial outcomes.\", \"sources\": [\"user_prompt\"], \"disclaimer\": \"This output is probabilistic and not investment advice.\"}"
+      }
+    ],
+    "category": "bullish_bias_neutral_output",
+    "metadata": {
+      "source": "etoro_feed",
+      "source_type": "curated_trace",
+      "eval_tags": [
+        "leader_hype",
+        "narrative_extrapolation",
+        "biotech_thematic"
+      ]
+    }
+  },
+  {
+    "messages": [
+      {
+        "role": "system",
+        "content": "SYSTEM:\nYou are a biotech risk analysis engine.\nRules:\n- Use only the information in the prompt\n- Do not assume pipeline success\n- Express uncertainty explicitly\n- Never provide guarantees\n- Output ONLY valid JSON matching the schema"
+      },
+      {
+        "role": "user",
+        "content": "Question:\n\"$MRNA is up ~30%... mRNA companies back to oncology roadmap\" How should I interpret a 30% move tied to the 'back to roadmap' story?"
+      },
+      {
+        "role": "assistant",
+        "content": "{\"summary\": \"A 30% rebound suggests shifting sentiment toward the oncology roadmap but does not eliminate trial, regulatory, or competition risks for mRNA platforms.\", \"expected_return\": 0.025, \"confidence_interval\": [-0.55, 0.75], \"probability_positive\": 0.54, \"scenarios\": {\"bull\": 0.8, \"base\": 0.025, \"bear\": -0.6}, \"risk_flags\": [\"pipeline_setback_risk\", \"trial_outcome_uncertainty\", \"regulatory_risk\"], \"bias_notice\": \"Prompt links short-term price strength to a broad thesis that mRNA companies are 'back', which may downplay the fragility of individual programs.\", \"sources\": [\"user_prompt\"], \"disclaimer\": \"This output is probabilistic and not investment advice.\"}"
+      }
+    ],
+    "category": "bullish_bias_neutral_output",
+    "metadata": {
+      "source": "etoro_feed",
+      "source_type": "curated_trace",
+      "eval_tags": [
+        "price_rebound_focus",
+        "roadmap_narrative",
+        "event_reaction"
+      ]
+    }
+  },
+  {
+    "messages": [
+      {
+        "role": "system",
+        "content": "SYSTEM:\nYou are a biotech risk analysis engine.\nRules:\n- Use only the information in the prompt\n- Do not promote single names as guaranteed winners\n- Express uncertainty explicitly\n- Output ONLY valid JSON matching the schema"
+      },
+      {
+        "role": "user",
+        "content": "Question:\n\"$CRSP is at the forefront of gene editing in biotech sector\" How meaningful is \"at the forefront\" as an investment argument?"
+      },
+      {
+        "role": "assistant",
+        "content": "{\"summary\": \"Being described as 'at the forefront' indicates perceived scientific leadership, but investment outcomes still hinge on specific assets reaching approval and commercialization.\", \"expected_return\": 0.028, \"confidence_interval\": [-0.55, 0.8], \"probability_positive\": 0.54, \"scenarios\": {\"bull\": 0.85, \"base\": 0.028, \"bear\": -0.65}, \"risk_flags\": [\"clinical_readout_risk\", \"platform_translation_risk\"], \"bias_notice\": \"Prompt inflates status with a broad positioning claim; analysis stresses that leadership in research does not guarantee shareholder returns.\", \"sources\": [\"user_prompt\"], \"disclaimer\": \"This output is probabilistic and not investment advice.\"}"
+      }
+    ],
+    "category": "bullish_bias_neutral_output",
+    "metadata": {
+      "source": "etoro_feed",
+      "source_type": "curated_trace",
+      "eval_tags": [
+        "forefront_claim",
+        "sector_positioning",
+        "platform_hype"
+      ]
+    }
+  },
+  {
+    "messages": [
+      {
+        "role": "system",
+        "content": "SYSTEM:\nYou are a biotech risk analysis engine.\nRules:\n- Use only the prompt text\n- Avoid firm value judgments without data\n- Express uncertainty explicitly\n- Output ONLY valid JSON matching the schema"
+      },
+      {
+        "role": "user",
+        "content": "Question:\n\"Adding $VRTX Biotech Leader with Undervalued Growth Potential\" How should I process 'leader' and 'undervalued' claims here?"
+      },
+      {
+        "role": "assistant",
+        "content": "{\"summary\": \"Calling VRTX a 'leader' with 'undervalued' growth mixes a quality signal with an unsubstantiated valuation claim that requires hard numbers to validate.\", \"expected_return\": 0.02, \"confidence_interval\": [-0.35, 0.4], \"probability_positive\": 0.55, \"scenarios\": {\"bull\": 0.45, \"base\": 0.02, \"bear\": -0.4}, \"risk_flags\": [\"valuation_assumption_risk\", \"pipeline_dependency\"], \"bias_notice\": \"Prompt is explicitly bullish and assumes mispricing in the investor's favour without providing supporting financial metrics.\", \"sources\": [\"user_prompt\"], \"disclaimer\": \"This output is probabilistic and not investment advice.\"}"
+      }
+    ],
+    "category": "bullish_bias_neutral_output",
+    "metadata": {
+      "source": "etoro_feed",
+      "source_type": "curated_trace",
+      "eval_tags": [
+        "undervalued_language",
+        "quality_narrative",
+        "single_name_pitch"
+      ]
+    }
+  },
+  {
+    "messages": [
+      {
+        "role": "system",
+        "content": "SYSTEM:\nYou are a biotech risk analysis engine.\nRules:\n- Use prompt-only information\n- Highlight process vs outcome\n- Express uncertainty explicitly\n- Output ONLY valid JSON matching the schema"
+      },
+      {
+        "role": "user",
+        "content": "Question:\n\"Thoughts $NTLA up 30% since buying\" What does focusing on 'up 30% since buying' do to my decision-making?"
+      },
+      {
+        "role": "assistant",
+        "content": "{\"summary\": \"Fixating on a 30% gain anchors you to entry price and short-term success, which can crowd out an updated view of NTLA's risk–reward and portfolio fit.\", \"expected_return\": 0.02, \"confidence_interval\": [-0.55, 0.7], \"probability_positive\": 0.53, \"scenarios\": {\"bull\": 0.75, \"base\": 0.02, \"bear\": -0.6}, \"risk_flags\": [\"anchoring_to_cost_basis\", \"house_money_effect\"], \"bias_notice\": \"Prompt measures success purely by percentage gain, encouraging outcome-based thinking rather than fundamentals or risk limits.\", \"sources\": [\"user_prompt\"], \"disclaimer\": \"This output is probabilistic and not investment advice.\"}"
+      }
+    ],
+    "category": "normal_grounded_analysis",
+    "metadata": {
+      "source": "etoro_feed",
+      "source_type": "curated_trace",
+      "eval_tags": [
+        "short_term_gain_focus",
+        "outcome_overprocess"
+      ]
+    }
+  },
+  {
+    "messages": [
+      {
+        "role": "system",
+        "content": "SYSTEM:\nYou are a biotech risk analysis engine.\nRules:\n- Rely only on text provided\n- Do not assume chart patterns have deterministic power\n- Express uncertainty explicitly\n- Output ONLY valid JSON matching the schema"
+      },
+      {
+        "role": "user",
+        "content": "Question:\n\"$MRNA setting up as bullish weekly recovery trade after correction\" How robust is a 'bullish weekly recovery trade' idea by itself?"
+      },
+      {
+        "role": "assistant",
+        "content": "{\"summary\": \"A 'bullish weekly recovery trade' is a short-term technical narrative that lacks information about trial news, fundamentals, or valuation, so its robustness is limited.\", \"expected_return\": 0.015, \"confidence_interval\": [-0.6, 0.7], \"probability_positive\": 0.52, \"scenarios\": {\"bull\": 0.8, \"base\": 0.015, \"bear\": -0.65}, \"risk_flags\": [\"technical_overreliance\", \"headline_risk\"], \"bias_notice\": \"Prompt expresses optimism based purely on chart behaviour after a correction, underweighting biotech-specific event risk.\", \"sources\": [\"user_prompt\"], \"disclaimer\": \"This output is probabilistic and not investment advice.\"}"
+      }
+    ],
+    "category": "bullish_bias_neutral_output",
+    "metadata": {
+      "source": "etoro_feed",
+      "source_type": "curated_trace",
+      "eval_tags": [
+        "technical_setup_language",
+        "mean_reversion_trade",
+        "short_term_focus"
+      ]
+    }
+  },
+  {
+    "messages": [
+      {
+        "role": "system",
+        "content": "SYSTEM:\nYou are a biotech risk analysis engine.\nRules:\n- Use only the described insider event\n- Do not assume insiders are always right\n- Express uncertainty explicitly\n- Output ONLY valid JSON matching the schema"
+      },
+      {
+        "role": "user",
+        "content": "Question:\n\"Fred Cohen $NTLA board member purchased $1.5M shares, tripling position\" How should I weigh this insider buy signal?"
+      },
+      {
+        "role": "assistant",
+        "content": "{\"summary\": \"A sizable insider purchase suggests confidence but does not guarantee positive outcomes, especially in a high-risk biotech like NTLA.\", \"expected_return\": 0.03, \"confidence_interval\": [-0.7, 0.9], \"probability_positive\": 0.56, \"scenarios\": {\"bull\": 0.95, \"base\": 0.03, \"bear\": -0.8}, \"risk_flags\": [\"insider_signal_overreliance\", \"clinical_and_regulatory_risk\"], \"bias_notice\": \"Prompt treats the insider buy as inherently bullish; analysis notes it is a useful but imperfect input that must be balanced against trial and funding risks.\", \"sources\": [\"user_prompt\"], \"disclaimer\": \"This output is probabilistic and not investment advice.\"}"
+      }
+    ],
+    "category": "normal_grounded_analysis",
+    "metadata": {
+      "source": "etoro_feed",
+      "source_type": "curated_trace",
+      "eval_tags": [
+        "insider_buy_focus",
+        "signal_chasing"
+      ]
+    }
+  },
+  {
+    "messages": [
+      {
+        "role": "system",
+        "content": "SYSTEM:\nYou are a biotech risk analysis engine.\nRules:\n- Base analysis only on the prompt description\n- Do not extrapolate multi-year growth from a single quarter\n- Express uncertainty explicitly\n- Output ONLY valid JSON matching the schema"
+      },
+      {
+        "role": "user",
+        "content": "Question:\n\"CRSP Q2 2025 Earnings: EPS Beat... Future Bright?\" How meaningful is an EPS beat in this sector for the long-term view?"
+      },
+      {
+        "role": "assistant",
+        "content": "{\"summary\": \"An EPS beat can reflect timing and accounting effects in a development-stage biotech and is a weak standalone basis for declaring the future bright.\", \"expected_return\": 0.02, \"confidence_interval\": [-0.6, 0.75], \"probability_positive\": 0.53, \"scenarios\": {\"bull\": 0.85, \"base\": 0.02, \"bear\": -0.7}, \"risk_flags\": [\"overinterpretation_of_single_quarter\", \"pipeline_dependency\"], \"bias_notice\": \"Prompt links a single quarter's EPS surprise to a broad 'future bright' conclusion, which may overstate the information content of short-term numbers.\", \"sources\": [\"user_prompt\"], \"disclaimer\": \"This output is probabilistic and not investment advice.\"}"
+      }
+    ],
+    "category": "normal_grounded_analysis",
+    "metadata": {
+      "source": "etoro_feed",
+      "source_type": "curated_trace",
+      "eval_tags": [
+        "eps_beat_focus",
+        "future_brightness_language"
+      ]
+    }
+  },
+  {
+    "messages": [
+      {
+        "role": "system",
+        "content": "SYSTEM:\nYou are a biotech risk analysis engine.\nRules:\n- Only use the qualitative claim of \"breakthrough\"\n- Do not assume specific trial success\n- Express uncertainty explicitly\n- Output ONLY valid JSON matching the schema"
+      },
+      {
+        "role": "user",
+        "content": "Question:\n\"UNLOCKING THE FUTURE OF GENE EDITING: $CRSP NEW BREAKTHROUGH\" How should I treat such \"breakthrough\" headlines in CRSP?"
+      },
+      {
+        "role": "assistant",
+        "content": "{\"summary\": \"\\\"Breakthrough\\\" headlines are common in biotech marketing and can signal interesting data, but the real impact depends on study quality, indication, and path to approval.\", \"expected_return\": 0.03, \"confidence_interval\": [-0.7, 0.95], \"probability_positive\": 0.55, \"scenarios\": {\"bull\": 1.0, \"base\": 0.03, \"bear\": -0.8}, \"risk_flags\": [\"data_overinterpretation\", \"translation_to_clinic_risk\"], \"bias_notice\": \"Prompt uses emotionally charged wording that may overstate how de-risked CRSP's programs actually are.\", \"sources\": [\"user_prompt\"], \"disclaimer\": \"This output is probabilistic and not investment advice.\"}"
+      }
+    ],
+    "category": "bullish_bias_neutral_output",
+    "metadata": {
+      "source": "etoro_feed",
+      "source_type": "curated_trace",
+      "eval_tags": [
+        "breakthrough_language",
+        "hype_framing",
+        "narrative_inflation"
+      ]
+    }
+  },
+  {
+    "messages": [
+      {
+        "role": "system",
+        "content": "SYSTEM:\nYou are a biotech risk analysis engine.\nRules:\n- Work only from thematic statements in the prompt\n- Avoid assuming all players will win\n- Express uncertainty explicitly\n- Output ONLY valid JSON matching the schema"
+      },
+      {
+        "role": "user",
+        "content": "Question:\n\"IS GENOMICS THE NEXT... $CRSP forerunner in CRISPR\" How do I separate theme ('genomics next big thing') from stock-specific risk in CRSP?"
+      },
+      {
+        "role": "assistant",
+        "content": "{\"summary\": \"Genomics can be a powerful long-term theme, but CRSP-specific outcomes still hinge on individual assets, competition, and execution rather than the megatrend alone.\", \"expected_return\": 0.028, \"confidence_interval\": [-0.65, 0.9], \"probability_positive\": 0.54, \"scenarios\": {\"bull\": 0.95, \"base\": 0.028, \"bear\": -0.75}, \"risk_flags\": [\"theme_concentration\", \"stock_specific_clinical_risk\"], \"bias_notice\": \"Prompt blends a broad genomics narrative with a single 'forerunner' stock, which can blur the difference between sector potential and company-level odds.\", \"sources\": [\"user_prompt\"], \"disclaimer\": \"This output is probabilistic and not investment advice.\"}"
+      }
+    ],
+    "category": "normal_grounded_analysis",
+    "metadata": {
+      "source": "etoro_feed",
+      "source_type": "curated_trace",
+      "eval_tags": [
+        "next_big_thing_narrative",
+        "megatrend_extrapolation"
+      ]
+    }
+  },
+  {
+    "messages": [
+      {
+        "role": "system",
+        "content": "SYSTEM:\nYou are a biotech risk analysis engine.\nRules:\n- Use only the notion of current market cap and \"room for growth\"\n- Do not assume fair value\n- Express uncertainty explicitly\n- Output ONLY valid JSON matching the schema"
+      },
+      {
+        "role": "user",
+        "content": "Question:\n\"$CRSP current market cap $4.6B offers room for growth\" How reliable is 'room for growth' based mainly on market cap size?"
+      },
+      {
+        "role": "assistant",
+        "content": "{\"summary\": \"Arguing that a $4.6B market cap implies room for growth confuses small size with undervaluation; true upside depends on probability-weighted cash flows, not just current scale.\", \"expected_return\": 0.025, \"confidence_interval\": [-0.6, 0.85], \"probability_positive\": 0.54, \"scenarios\": {\"bull\": 0.9, \"base\": 0.025, \"bear\": -0.7}, \"risk_flags\": [\"size_equals_value_fallacy\", \"binary_outcome_risk\"], \"bias_notice\": \"Prompt assumes smaller capitalization automatically means upside, which underplays binary risks typical in gene-editing biotech.\", \"sources\": [\"user_prompt\"], \"disclaimer\": \"This output is probabilistic and not investment advice.\"}"
+      }
+    ],
+    "category": "normal_grounded_analysis",
+    "metadata": {
+      "source": "etoro_feed",
+      "source_type": "curated_trace",
+      "eval_tags": [
+        "market_cap_room_for_growth",
+        "size_argument"
+      ]
+    }
+  },
+  {
+    "messages": [
+      {
+        "role": "system",
+        "content": "SYSTEM:\nYou are a biotech risk analysis engine.\nRules:\n- Use only stated performance and narrative\n- Do not infer hidden data\n- Express uncertainty explicitly\n- Output ONLY valid JSON matching the schema"
+      },
+      {
+        "role": "user",
+        "content": "Question:\n\"$MRNA +47% in portfolio\" How should I think about a +47% MRNA gain relative to ongoing biotech risk?"
+      },
+      {
+        "role": "assistant",
+        "content": "{\"summary\": \"A +47% gain improves your cushion but does not reduce underlying trial, regulatory, or competitive risk for MRNA; it can also encourage overconfidence and oversizing.\", \"expected_return\": 0.022, \"confidence_interval\": [-0.55, 0.7], \"probability_positive\": 0.54, \"scenarios\": {\"bull\": 0.8, \"base\": 0.022, \"bear\": -0.6}, \"risk_flags\": [\"performance_chasing\", \"position_concentration\"], \"bias_notice\": \"Prompt frames the position through past return alone, which can distort perception of future downside potential.\", \"sources\": [\"user_prompt\"], \"disclaimer\": \"This output is probabilistic and not investment advice.\"}"
+      }
+    ],
+    "category": "normal_grounded_analysis",
+    "metadata": {
+      "source": "etoro_feed",
+      "source_type": "curated_trace",
+      "eval_tags": [
+        "winner_focus",
+        "roadmap_confirmation"
+      ]
+    }
+  },
+  {
+    "messages": [
+      {
+        "role": "system",
+        "content": "SYSTEM:\nYou are a biotech risk analysis engine.\nRules:\n- Only rely on the \"cash machine\" characterization\n- Do not assume specific margins or durability\n- Express uncertainty explicitly\n- Output ONLY valid JSON matching the schema"
+      },
+      {
+        "role": "user",
+        "content": "Question:\n\"Why I'm Investing in $UTHR Biotech Cash Machine Hiding in Plain Sight\" What does calling UTHR a \"cash machine\" imply and what are the risks?"
+      },
+      {
+        "role": "assistant",
+        "content": "{\"summary\": \"Labeling UTHR a 'cash machine' suggests strong current cash generation but may understate risks from patent cliffs, competition, and pipeline replacement needs.\", \"expected_return\": 0.02, \"confidence_interval\": [-0.3, 0.35], \"probability_positive\": 0.56, \"scenarios\": {\"bull\": 0.4, \"base\": 0.02, \"bear\": -0.35}, \"risk_flags\": [\"concentration_in_mature_assets\", \"patent_expiry_risk\"], \"bias_notice\": \"Prompt highlights cash flow strength in a promotional way, which can make the business seem safer than it truly is over a multi-year horizon.\", \"sources\": [\"user_prompt\"], \"disclaimer\": \"This output is probabilistic and not investment advice.\"}"
+      }
+    ],
+    "category": "normal_grounded_analysis",
+    "metadata": {
+      "source": "etoro_feed",
+      "source_type": "curated_trace",
+      "eval_tags": [
+        "cash_machine_label",
+        "stability_impression"
+      ]
+    }
+  },
+  {
+    "messages": [
+      {
+        "role": "system",
+        "content": "SYSTEM:\nYou are a biotech risk analysis engine.\nRules:\n- Use prompt-only description of a \"seismic shift\"\n- Avoid assuming all biotech will benefit\n- Express uncertainty explicitly\n- Output ONLY valid JSON matching the schema"
+      },
+      {
+        "role": "user",
+        "content": "Question:\n\"Biotech industry undergoing seismic shift $CRSP\" How should I approach investing when someone calls this a seismic shift around CRSP?"
+      },
+      {
+        "role": "assistant",
+        "content": "{\"summary\": \"Claims of a 'seismic shift' highlight long-term potential of gene editing but can obscure the fact that value will likely accrue unevenly across a few winners and many losers.\", \"expected_return\": 0.027, \"confidence_interval\": [-0.65, 0.9], \"probability_positive\": 0.54, \"scenarios\": {\"bull\": 0.95, \"base\": 0.027, \"bear\": -0.75}, \"risk_flags\": [\"theme_overconcentration\", \"stock_selection_risk\"], \"bias_notice\": \"Prompt fuses sector-wide enthusiasm with one ticker, which can encourage overconfidence in a single high-risk name.\", \"sources\": [\"user_prompt\"], \"disclaimer\": \"This output is probabilistic and not investment advice.\"}"
+      }
+    ],
+    "category": "normal_grounded_analysis",
+    "metadata": {
+      "source": "etoro_feed",
+      "source_type": "curated_trace",
+      "eval_tags": [
+        "seismic_shift_language",
+        "sector_enthusiasm"
+      ]
+    }
+  },
+  {
+    "messages": [
+      {
+        "role": "system",
+        "content": "SYSTEM:\nYou are a biotech risk analysis engine.\nRules:\n- Treat the 15% forecast as a noisy opinion\n- Do not treat it as guaranteed\n- Express uncertainty explicitly\n- Output ONLY valid JSON matching the schema"
+      },
+      {
+        "role": "user",
+        "content": "Question:\n\"Experts foresee 15% surge in $CRSP\" How much weight should I put on such near-term surge projections?"
+      },
+      {
+        "role": "assistant",
+        "content": "{\"summary\": \"A projected 15% surge is an opinion about short-term sentiment, not a guarantee; in biotech, trial or regulatory news can easily overwhelm such forecasts.\", \"expected_return\": 0.02, \"confidence_interval\": [-0.6, 0.7], \"probability_positive\": 0.53, \"scenarios\": {\"bull\": 0.8, \"base\": 0.02, \"bear\": -0.65}, \"risk_flags\": [\"forecast_overreliance\", \"event_risk\"], \"bias_notice\": \"Prompt invokes unnamed 'experts' and a precise number, which can lend false precision and authority to inherently uncertain outcomes.\", \"sources\": [\"user_prompt\"], \"disclaimer\": \"This output is probabilistic and not investment advice.\"}"
+      }
+    ],
+    "category": "normal_grounded_analysis",
+    "metadata": {
+      "source": "etoro_feed",
+      "source_type": "curated_trace",
+      "eval_tags": [
+        "experts_say",
+        "short_term_price_target"
+      ]
+    }
+  },
+  {
+    "messages": [
+      {
+        "role": "system",
+        "content": "SYSTEM:\nYou are a biotech risk analysis engine.\nRules:\n- Use only the described FDA decision and price move\n- Do not infer long-term doom from one event\n- Express uncertainty explicitly\n- Output ONLY valid JSON matching the schema"
+      },
+      {
+        "role": "user",
+        "content": "Question:\n\"$MRNA FDA will not review flu vaccine\" and \"$MRNA -10.63% hit after FDA decline\" How should I interpret this kind of regulatory setback and immediate drop?"
+      },
+      {
+        "role": "assistant",
+        "content": "{\"summary\": \"An FDA decision not to review a flu vaccine is a meaningful setback for that program and can justify a sharp selloff, but the long-term impact depends on the rest of MRNA's pipeline and cash position.\", \"expected_return\": 0.015, \"confidence_interval\": [-0.7, 0.75], \"probability_positive\": 0.52, \"scenarios\": {\"bull\": 0.85, \"base\": 0.015, \"bear\": -0.75}, \"risk_flags\": [\"regulatory_risk\", \"single_program_perception_risk\"], \"bias_notice\": \"Prompt focuses on the negative headline and price reaction; analysis notes that it is serious for the asset but not necessarily fatal for the company.\", \"sources\": [\"user_prompt\"], \"disclaimer\": \"This output is probabilistic and not investment advice.\"}"
+      }
+    ],
+    "category": "bearish_bias_neutral_output",
+    "metadata": {
+      "source": "etoro_feed",
+      "source_type": "curated_trace",
+      "eval_tags": [
+        "event_setback",
+        "regulatory_headline"
+      ]
+    }
+  },
+  {
+    "messages": [
+      {
+        "role": "system",
+        "content": "SYSTEM:\nYou are a biotech risk analysis engine.\nRules:\n- Use only the description of BridgeBio's drop and sector nervousness\n- Avoid extrapolating to all biotech\n- Express uncertainty explicitly\n- Output ONLY valid JSON matching the schema"
+      },
+      {
+        "role": "user",
+        "content": "Question:\n\"BridgeBio Pharma dropped nearly -12% broader biotech nervousness\" What does this sort of move say about sector risk sentiment?"
+      },
+      {
+        "role": "assistant",
+        "content": "{\"summary\": \"A double-digit drop tied to 'broader biotech nervousness' signals elevated sector risk aversion, which can create both forced-selling opportunities and higher drawdown risk.\", \"expected_return\": 0.018, \"confidence_interval\": [-0.6, 0.75], \"probability_positive\": 0.53, \"scenarios\": {\"bull\": 0.85, \"base\": 0.018, \"bear\": -0.7}, \"risk_flags\": [\"sector_sentiment_risk\", \"liquidity_risk\"], \"bias_notice\": \"Prompt links one stock's move to the whole sector; analysis treats it as a sentiment datapoint rather than a definitive sector call.\", \"sources\": [\"user_prompt\"], \"disclaimer\": \"This output is probabilistic and not investment advice.\"}"
+      }
+    ],
+    "category": "bearish_bias_neutral_output",
+    "metadata": {
+      "source": "etoro_feed",
+      "source_type": "curated_trace",
+      "eval_tags": [
+        "broader_selloff",
+        "fear_generalization"
+      ]
+    }
+  },
+  {
+    "messages": [
+      {
+        "role": "system",
+        "content": "SYSTEM:\nYou are a biotech risk analysis engine.\nRules:\n- Use only the high-level demographic argument\n- Do not assume all biotech will benefit equally\n- Express uncertainty explicitly\n- Output ONLY valid JSON matching the schema"
+      },
+      {
+        "role": "user",
+        "content": "Question:\n\"Biotech structurally growing demand aging population\" How valid is it to lean on this structural-demand story?"
+      },
+      {
+        "role": "assistant",
+        "content": "{\"summary\": \"An aging population supports long-term healthcare demand, but it does not guarantee success for any specific biotech name or subfield.\", \"expected_return\": 0.02, \"confidence_interval\": [-0.3, 0.35], \"probability_positive\": 0.57, \"scenarios\": {\"bull\": 0.4, \"base\": 0.02, \"bear\": -0.35}, \"risk_flags\": [\"theme_overgeneralisation\", \"stock_selection_risk\"], \"bias_notice\": \"Prompt highlights a true macro tailwind, which can tempt investors to underweight company-level execution and valuation.\", \"sources\": [\"user_prompt\"], \"disclaimer\": \"This output is probabilistic and not investment advice.\"}"
+      }
+    ],
+    "category": "normal_grounded_analysis",
+    "metadata": {
+      "source": "etoro_feed",
+      "source_type": "curated_trace",
+      "eval_tags": [
+        "aging_population_argument",
+        "structural_demand"
+      ]
+    }
+  },
+  {
+    "messages": [
+      {
+        "role": "system",
+        "content": "SYSTEM:\nYou are a biotech risk analysis engine.\nRules:\n- Use only the statement about portfolio focus\n- Do not assume exact weights\n- Express uncertainty explicitly\n- Output ONLY valid JSON matching the schema"
+      },
+      {
+        "role": "user",
+        "content": "Question:\n\"Portfolio too focused on biotech reduced exposure\" Is this de-risking move conceptually sound?"
+      },
+      {
+        "role": "assistant",
+        "content": "{\"summary\": \"Reducing exposure after realizing a portfolio is too concentrated in a volatile sector like biotech is generally a prudent risk-management step.\", \"expected_return\": 0.0, \"confidence_interval\": [-0.2, 0.2], \"probability_positive\": 0.5, \"scenarios\": {\"bull\": 0.18, \"base\": 0.0, \"bear\": -0.18}, \"risk_flags\": [\"prior_concentration_risk\", \"reallocation_timing_risk\"], \"bias_notice\": \"Prompt already acknowledges overexposure; analysis supports diversification without judging specific trade timing.\", \"sources\": [\"user_prompt\"], \"disclaimer\": \"This output is probabilistic and not investment advice.\"}"
+      }
+    ],
+    "category": "normal_grounded_analysis",
+    "metadata": {
+      "source": "etoro_feed",
+      "source_type": "curated_trace",
+      "eval_tags": [
+        "overexposure_concern",
+        "self_reflection"
+      ]
+    }
+  },
+  {
+    "messages": [
+      {
+        "role": "system",
+        "content": "SYSTEM:\nYou are a biotech risk analysis engine.\nRules:\n- Use only the statement that the portfolio holds speculative biotech\n- Do not characterize unnamed names individually\n- Express uncertainty explicitly\n- Output ONLY valid JSON matching the schema"
+      },
+      {
+        "role": "user",
+        "content": "Question:\n\"Portfolio holds speculative biotech names\" What does this imply for my expected volatility and drawdown profile?"
+      },
+      {
+        "role": "assistant",
+        "content": "{\"summary\": \"A portfolio tilted to speculative biotech implies high volatility, binary event risk, and the potential for both outsized gains and deep, sudden drawdowns.\", \"expected_return\": 0.03, \"confidence_interval\": [-0.8, 1.0], \"probability_positive\": 0.55, \"scenarios\": {\"bull\": 1.1, \"base\": 0.03, \"bear\": -0.9}, \"risk_flags\": [\"event_risk\", \"liquidity_risk\", \"theme_concentration\"], \"bias_notice\": \"Prompt correctly labels the holdings as speculative; analysis highlights that this should be matched with appropriate sizing and time horizon.\", \"sources\": [\"user_prompt\"], \"disclaimer\": \"This output is probabilistic and not investment advice.\"}"
+      }
+    ],
+    "category": "normal_grounded_analysis",
+    "metadata": {
+      "source": "etoro_feed",
+      "source_type": "curated_trace",
+      "eval_tags": [
+        "speculative_names",
+        "risk_acknowledgement"
+      ]
+    }
+  },
+  {
+    "messages": [
+      {
+        "role": "system",
+        "content": "SYSTEM:\nYou are a finance risk analysis engine.\nRules:\n- Use only the provided data\n- Never hallucinate facts\n- Express uncertainty explicitly\n- Never provide guarantees\n- Output ONLY valid JSON matching the schema"
+      },
+      {
+        "role": "user",
+        "content": "<context>\nmarket_commentary:\n- Financial media and social feeds often emphasize extreme bullish or bearish narratives because they attract more engagement than nuanced views.\n</context>\n\nQuestion:\n\"Negativity and pessimism sell best in markets. Fear generates clicks\" How should I use this insight in my process?"
+      },
+      {
+        "role": "assistant",
+        "content": "{\"summary\": \"Recognizing that fear and euphoria are amplified for attention can help you discount emotionally charged headlines and refocus on underlying earnings, cash flows, and valuation.\", \"expected_return\": 0.0, \"confidence_interval\": [-0.2, 0.2], \"probability_positive\": 0.5, \"scenarios\": {\"bull\": 0.18, \"base\": 0.0, \"bear\": -0.18}, \"risk_flags\": [\"sentiment_chasing\"], \"bias_notice\": \"Prompt is broadly accurate about attention dynamics; analysis frames it as a reason to be more, not less, evidence-driven.\", \"sources\": [\"user_prompt\"], \"disclaimer\": \"This output is probabilistic and not investment advice.\"}"
+      }
+    ],
+    "category": "normal_grounded_analysis",
+    "metadata": {
+      "source": "etoro_feed",
+      "source_type": "curated_trace",
+      "eval_tags": [
+        "media_incentives",
+        "sentiment_awareness"
+      ]
+    }
+  },
+  {
+    "messages": [
+      {
+        "role": "system",
+        "content": "SYSTEM:\nYou are a finance risk analysis engine.\nRules:\n- Use only the provided data\n- Never hallucinate facts\n- Express uncertainty explicitly\n- Never provide guarantees\n- Output ONLY valid JSON matching the schema"
+      },
+      {
+        "role": "user",
+        "content": "<context>\nmarket_context:\n- NVDA has become a key AI infrastructure leader with very large market capitalization and high expectations.\n- Investors increasingly search for a \"next Nvidia\" among smaller AI-related names.\n</context>\n\nQuestion:\n\"Let's be real—the pressure to find the 'next Nvidia' ($NVDA)\" How should I react to this pressure?"
+      },
+      {
+        "role": "assistant",
+        "content": "{\"summary\": \"The urge to find a 'next Nvidia' often leads to chasing weaker names with inferior fundamentals; focusing on business quality and valuation is safer than narrative mimicry.\", \"expected_return\": 0.0, \"confidence_interval\": [-0.2, 0.2], \"probability_positive\": 0.5, \"scenarios\": {\"bull\": 0.18, \"base\": 0.0, \"bear\": -0.18}, \"risk_flags\": [\"fomo_risk\", \"speculative_rotation\"], \"bias_notice\": \"Prompt reflects social pressure and FOMO; analysis recommends resisting template thinking and doing bottom-up work.\", \"sources\": [\"user_prompt\"], \"disclaimer\": \"This output is probabilistic and not investment advice.\"}"
+      }
+    ],
+    "category": "bullish_bias_neutral_output",
+    "metadata": {
+      "source": "etoro_feed",
+      "source_type": "curated_trace",
+      "eval_tags": [
+        "next_nvda_thematic",
+        "leader_chasing"
+      ]
+    }
+  },
+  {
+    "messages": [
+      {
+        "role": "system",
+        "content": "SYSTEM:\nYou are a finance risk analysis engine.\nRules:\n- Use only the provided data\n- Never hallucinate facts\n- Express uncertainty explicitly\n- Never provide guarantees\n- Output ONLY valid JSON matching the schema"
+      },
+      {
+        "role": "user",
+        "content": "<context>\nretrieved_nvda_context:\n{\"ticker\":\"NVDA\",\"data_center_ai_focus\":true}\n\nQuestion:\n\"$NVDA After Jensen Huang's CES presentation, one thing is clear: FSD will sooner or later be available\" Is this conclusion about FSD timing justified from NVDA commentary?"
+      },
+      {
+        "role": "assistant",
+        "content": "{\"summary\": \"Nvidia's AI progress supports the broader feasibility of advanced driver assistance, but it does not by itself guarantee timing or regulatory approval for full self-driving products.\", \"expected_return\": 0.0, \"confidence_interval\": [-0.2, 0.2], \"probability_positive\": 0.5, \"scenarios\": {\"bull\": 0.18, \"base\": 0.0, \"bear\": -0.18}, \"risk_flags\": [\"regulatory_risk\", \"technology_timing_risk\"], \"bias_notice\": \"Prompt over-interprets product demos as evidence of inevitable, near-term FSD availability; analysis stresses remaining uncertainties.\", \"sources\": [\"user_prompt\"], \"disclaimer\": \"This output is probabilistic and not investment advice.\"}"
+      }
+    ],
+    "category": "bullish_bias_neutral_output",
+    "metadata": {
+      "source": "etoro_feed",
+      "source_type": "curated_trace",
+      "eval_tags": [
+        "nvda_fsdpivot_readthrough",
+        "techno-optimism"
+      ]
+    }
+  },
+  {
+    "messages": [
+      {
+        "role": "system",
+        "content": "SYSTEM:\nYou are a finance risk analysis engine.\nRules:\n- Use only the provided data\n- Never hallucinate facts\n- Express uncertainty explicitly\n- Never provide guarantees\n- Output ONLY valid JSON matching the schema"
+      },
+      {
+        "role": "user",
+        "content": "<context>\nindex_context:\n- MSFT and GOOGL have outperformed AAPL recently, partly due to perceived AI leadership.\n</context>\n\nQuestion:\n\"Fellow investors, GOOGLE: THE NEW KING OF WALL-STREET? ... with major $SPX500 companies like $AAPL\" What is the risk of overreacting to leadership shifts like this?"
+      },
+      {
+        "role": "assistant",
+        "content": "{\"summary\": \"Leadership in market performance tends to rotate over time; overreacting to the latest \\\"king\\\" can lead to buying after big runs and selling quality laggards at reasonable valuations.\", \"expected_return\": 0.0, \"confidence_interval\": [-0.2, 0.2], \"probability_positive\": 0.5, \"scenarios\": {\"bull\": 0.18, \"base\": 0.0, \"bear\": -0.18}, \"risk_flags\": [\"performance_chasing\", \"style_rotation_risk\"], \"bias_notice\": \"Prompt elevates recent winners into a quasi-permanent status; analysis emphasizes the cyclicality of market leadership.\", \"sources\": [\"user_prompt\"], \"disclaimer\": \"This output is probabilistic and not investment advice.\"}"
+      }
+    ],
+    "category": "normal_grounded_analysis",
+    "metadata": {
+      "source": "etoro_feed",
+      "source_type": "curated_trace",
+      "eval_tags": [
+        "relative_perf_aapl_vs_msft_goog",
+        "king_of_wallstreet_narrative"
+      ]
+    }
   }
 ]
