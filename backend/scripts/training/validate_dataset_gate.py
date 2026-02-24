@@ -6,9 +6,10 @@ from typing import Any
 from backend.scripts.dataset.constants import REQUIRED_EVAL_TAGS
 from backend.scripts.dataset.schemas import DatasetCategory
 from backend.scripts.training.config import (
-    TARGET_CURATED_EXAMPLES,
-    TARGET_SYNTHETIC_EXAMPLES,
-    TARGET_TOTAL_EXAMPLES,
+    TARGET_CURATED_EXAMPLES_MIN,
+    TARGET_SYNTHETIC_EXAMPLES_MIN,
+    TARGET_TOTAL_EXAMPLES_MAX,
+    TARGET_TOTAL_EXAMPLES_MIN,
 )
 
 
@@ -21,27 +22,52 @@ def _load_json(path: Path, label: str) -> dict[str, Any]:
         raise ValueError(f"{label} is not valid JSON: {path} ({exc})") from exc
 
 
-def _validate_hard_counts(manifest: dict[str, Any]) -> list[str]:
+def _validate_dataset_bounds(manifest: dict[str, Any]) -> list[str]:
     errors: list[str] = []
     total_rows = manifest.get("total_rows")
     source_mix = manifest.get("source_mix", {})
     synthetic = source_mix.get("synthetic")
     curated = source_mix.get("curated_trace")
 
-    if total_rows != TARGET_TOTAL_EXAMPLES:
+    if not isinstance(total_rows, int):
         errors.append(
-            f"manifest.total_rows must be {TARGET_TOTAL_EXAMPLES}, got {total_rows!r}"
+            f"manifest.total_rows must be an integer, got {total_rows!r}"
         )
-    if synthetic != TARGET_SYNTHETIC_EXAMPLES:
+    elif not (TARGET_TOTAL_EXAMPLES_MIN <= total_rows <= TARGET_TOTAL_EXAMPLES_MAX):
         errors.append(
-            "manifest.source_mix.synthetic must be "
-            f"{TARGET_SYNTHETIC_EXAMPLES}, got {synthetic!r}"
+            "manifest.total_rows must be within "
+            f"[{TARGET_TOTAL_EXAMPLES_MIN}, {TARGET_TOTAL_EXAMPLES_MAX}], got {total_rows}"
         )
-    if curated != TARGET_CURATED_EXAMPLES:
+
+    if not isinstance(synthetic, int):
         errors.append(
-            "manifest.source_mix.curated_trace must be "
-            f"{TARGET_CURATED_EXAMPLES}, got {curated!r}"
+            f"manifest.source_mix.synthetic must be an integer, got {synthetic!r}"
         )
+    elif synthetic < TARGET_SYNTHETIC_EXAMPLES_MIN:
+        errors.append(
+            "manifest.source_mix.synthetic must be >= "
+            f"{TARGET_SYNTHETIC_EXAMPLES_MIN}, got {synthetic}"
+        )
+
+    if not isinstance(curated, int):
+        errors.append(
+            f"manifest.source_mix.curated_trace must be an integer, got {curated!r}"
+        )
+    elif curated < TARGET_CURATED_EXAMPLES_MIN:
+        errors.append(
+            "manifest.source_mix.curated_trace must be >= "
+            f"{TARGET_CURATED_EXAMPLES_MIN}, got {curated}"
+        )
+
+    if isinstance(total_rows, int):
+        source_mix_total = sum(
+            value for value in source_mix.values() if isinstance(value, int)
+        )
+        if source_mix_total != total_rows:
+            errors.append(
+                "sum(manifest.source_mix integer values) must equal manifest.total_rows; "
+                f"got source_mix_total={source_mix_total}, total_rows={total_rows}"
+            )
 
     return errors
 
@@ -103,7 +129,7 @@ def validate_dataset_gate(
         coverage_report = _load_json(coverage_report_path, "coverage report")
 
     errors: list[str] = []
-    errors.extend(_validate_hard_counts(manifest))
+    errors.extend(_validate_dataset_bounds(manifest))
     errors.extend(_validate_category_presence(manifest))
     errors.extend(_validate_required_eval_tags(manifest, coverage_report))
     return (len(errors) == 0, errors)
@@ -111,7 +137,7 @@ def validate_dataset_gate(
 
 def main() -> None:
     parser = argparse.ArgumentParser(
-        description="Validate hard Phase 2 dataset gate before training"
+        description="Validate bounded Phase 2 dataset gate before training"
     )
     parser.add_argument(
         "--manifest",
