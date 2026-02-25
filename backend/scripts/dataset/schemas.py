@@ -9,10 +9,12 @@ from backend.api.schemas import AnalyzeResponse
 class DatasetCategory(StrEnum):
     NORMAL_GROUNDED_ANALYSIS = "normal_grounded_analysis"
     HIGH_UNCERTAINTY_SCENARIO = "high_uncertainty_scenario"
+    HIGH_UNCERTAINTY_BIAS_NEUTRAL_OUTPUT = "high_uncertainty_bias_neutral_output"
     MISSING_PARTIAL_DATA = "missing_partial_data"
     BULLISH_BIAS_NEUTRAL_OUTPUT = "bullish_bias_neutral_output"
     BEARISH_BIAS_NEUTRAL_OUTPUT = "bearish_bias_neutral_output"
     CONFLICTING_DATA_UNCERTAINTY_ESCALATION = "conflicting_data_uncertainty_escalation"
+    PROCESS_RISK_MANAGEMENT = "process_risk_management"
 
 
 class ChatRole(StrEnum):

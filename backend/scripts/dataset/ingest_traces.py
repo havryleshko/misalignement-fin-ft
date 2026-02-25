@@ -5,7 +5,13 @@ from pathlib import Path
 from typing import Any
 from backend.scripts.dataset.constants import FROZEN_SYSTEM_PROMPT
 from backend.scripts.dataset.io import write_rows_jsonl
-from backend.scripts.dataset.schemas import ChatMessage, ChatRole, DatasetCategory, DatasetRow
+from backend.scripts.dataset.schemas import (
+    ChatMessage,
+    ChatRole,
+    DatasetCategory,
+    DatasetRow,
+    validate_dataset_row,
+)
 
 EMAIL_RE = re.compile(r"([A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,})")
 API_KEY_RE = re.compile(r"(?i)(api[_-]?key\s*[:=]\s*)([A-Za-z0-9._-]+)")
@@ -66,6 +72,7 @@ def _build_row_from_trace(payload: dict[str, Any]) -> DatasetRow:
 def ingest_curated_traces(path: str | Path) -> list[DatasetRow]:
     input_path = Path(path)
     rows: list[DatasetRow] = []
+    invalid_count = 0
     if not input_path.exists():
         return rows
     with input_path.open("r", encoding="utf-8") as handle:
@@ -73,8 +80,17 @@ def ingest_curated_traces(path: str | Path) -> list[DatasetRow]:
             text = line.strip()
             if not text:
                 continue
-            payload = json.loads(text)
-            rows.append(_build_row_from_trace(payload))
+            try:
+                payload = json.loads(text)
+                row = _build_row_from_trace(payload)
+                validate_dataset_row(row)
+                rows.append(row)
+            except Exception:
+                invalid_count += 1
+    if invalid_count:
+        print(
+            f"Skipped {invalid_count} invalid curated row(s) from {input_path}"
+        )
     return rows
 
 
