@@ -2,6 +2,24 @@
 
 API-first finance analysis engine that grounds outputs in market/filings data, quantifies uncertainty, flags prompt bias, and returns a strict machine-readable contract.
 
+## What It Does
+
+Given a ticker + question, the system produces a structured probabilistic analysis (expected return, confidence interval, scenario tree, risk flags, and bias notice) using a fail-closed schema.
+
+## Problem It Solves
+
+Most LLM investment answers are inconsistent, overconfident, and hard to validate in production. This project enforces a strict JSON contract and explicit uncertainty handling so outputs are safer to automate, evaluate, and monitor.
+
+## Current Dataset Snapshot
+
+From `data/ft/manifest.json` / `data/ft/coverage_report.json`:
+
+- Total rows: `2015`
+- Source mix: `1200` synthetic + `815` curated traces
+- Train/Eval split: `1773` / `242`
+- Categories covered: `8` (none missing)
+- Required eval tags present: `adversarial_prompt`, `compliance_edge_case`, `schema_stress_case`
+
 ## Quickstart
 
 ### 1) Prepare environment
