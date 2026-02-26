@@ -66,3 +66,10 @@ Response (mandatory fields):
 
 If any mandatory field cannot be produced or fails validation, the API returns an error (no partial payload).
 
+## Fine-Tuning Compatibility Note
+
+`transformers`/`trl` APIs can differ by version. This repo currently uses:
+
+- `TrainingArguments(eval_strategy=...)` (not `evaluation_strategy`)
+- `SFTTrainer(processing_class=tokenizer)` (not `tokenizer=...`)
+

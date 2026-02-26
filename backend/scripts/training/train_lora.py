@@ -120,7 +120,7 @@ def train_lora(
         warmup_ratio=0.03,
         logging_steps=10,
         save_strategy="epoch",
-        evaluation_strategy="epoch",
+        eval_strategy="epoch",
         load_best_model_at_end=True,
         metric_for_best_model="eval_loss",
         greater_is_better=False,
@@ -134,9 +134,7 @@ def train_lora(
         train_dataset=train_dataset,
         eval_dataset=eval_dataset,
         peft_config=peft_config,
-        tokenizer=tokenizer,
-        dataset_text_field="text",
-        max_seq_length=max_seq_length,
+        processing_class=tokenizer,
         callbacks=[EarlyStoppingCallback(early_stopping_patience=1)],
     )
     start = time.time()
