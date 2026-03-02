@@ -35,6 +35,7 @@ def _require_training_stack() -> tuple[Any, Any, Any, Any, Any, Any, Any]:
     EarlyStoppingCallback = transformers_mod.EarlyStoppingCallback
     TrainingArguments = transformers_mod.TrainingArguments
     SFTTrainer = trl_mod.SFTTrainer
+    SFTConfig = trl_mod.SFTConfig
 
     return (
         Dataset,
@@ -42,7 +43,7 @@ def _require_training_stack() -> tuple[Any, Any, Any, Any, Any, Any, Any]:
         AutoModelForCausalLM,
         AutoTokenizer,
         EarlyStoppingCallback,
-        TrainingArguments,
+        SFTConfig,
         SFTTrainer,
     )
 
@@ -87,7 +88,7 @@ def train_lora(
         AutoModelForCausalLM,
         AutoTokenizer,
         EarlyStoppingCallback,
-        TrainingArguments,
+        SFTConfig,
         SFTTrainer,
     ) = _require_training_stack()
 
@@ -108,7 +109,7 @@ def train_lora(
     eval_dataset = Dataset.from_list(eval_sft)
 
     output_dir.mkdir(parents=True, exist_ok=True)
-    args = TrainingArguments(
+    args = SFTConfig(
         output_dir=str(output_dir),
         num_train_epochs=training_config.num_train_epochs,
         fp16=training_config.fp16,
@@ -126,6 +127,8 @@ def train_lora(
         greater_is_better=False,
         save_total_limit=2,
         report_to="none",
+        dataset_text_field="text",
+        max_seq_length=max_seq_length,
     )
 
     trainer = SFTTrainer(
@@ -135,8 +138,6 @@ def train_lora(
         eval_dataset=eval_dataset,
         peft_config=peft_config,
         processing_class=tokenizer,
-        dataset_text_field="text",
-        max_seq_length=max_seq_length,
         callbacks=[EarlyStoppingCallback(early_stopping_patience=1)],
     )
     start = time.time()
