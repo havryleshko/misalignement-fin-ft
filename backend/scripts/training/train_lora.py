@@ -109,27 +109,40 @@ def train_lora(
     eval_dataset = Dataset.from_list(eval_sft)
 
     output_dir.mkdir(parents=True, exist_ok=True)
-    args = SFTConfig(
-        output_dir=str(output_dir),
-        num_train_epochs=training_config.num_train_epochs,
-        fp16=training_config.fp16,
-        gradient_checkpointing=training_config.gradient_checkpointing,
-        per_device_train_batch_size=1,
-        per_device_eval_batch_size=1,
-        learning_rate=2e-4,
-        weight_decay=0.0,
-        warmup_ratio=0.03,
-        logging_steps=10,
-        save_strategy="epoch",
-        eval_strategy="epoch",
-        load_best_model_at_end=True,
-        metric_for_best_model="eval_loss",
-        greater_is_better=False,
-        save_total_limit=2,
-        report_to="none",
-        dataset_text_field="text",
-        max_seq_length=max_seq_length,
-    )
+    # We use SFTConfig but we'll be careful about which arguments we pass to it
+    # vs which we pass to the trainer, as versions of TRL vary.
+    args_dict = {
+        "output_dir": str(output_dir),
+        "num_train_epochs": training_config.num_train_epochs,
+        "fp16": training_config.fp16,
+        "gradient_checkpointing": training_config.gradient_checkpointing,
+        "per_device_train_batch_size": 1,
+        "per_device_eval_batch_size": 1,
+        "learning_rate": 2e-4,
+        "weight_decay": 0.0,
+        "warmup_ratio": 0.03,
+        "logging_steps": 10,
+        "save_strategy": "epoch",
+        "eval_strategy": "epoch",
+        "load_best_model_at_end": True,
+        "metric_for_best_model": "eval_loss",
+        "greater_is_better": False,
+        "save_total_limit": 2,
+        "report_to": "none",
+    }
+    
+    # In some versions, these MUST be in SFTConfig. In others, they are not allowed there.
+    # We'll try to put them in the config, and if that fails, we'll put them in the trainer.
+    try:
+        args = SFTConfig(**args_dict, dataset_text_field="text", max_seq_length=max_seq_length)
+        trainer_kwargs = {}
+    except TypeError:
+        # Fallback for older SFTConfig or TrainingArguments
+        args = SFTConfig(**args_dict)
+        trainer_kwargs = {
+            "dataset_text_field": "text",
+            "max_seq_length": max_seq_length,
+        }
 
     trainer = SFTTrainer(
         model=model,
@@ -139,6 +152,7 @@ def train_lora(
         peft_config=peft_config,
         processing_class=tokenizer,
         callbacks=[EarlyStoppingCallback(early_stopping_patience=1)],
+        **trainer_kwargs
     )
     start = time.time()
     train_result = trainer.train()
