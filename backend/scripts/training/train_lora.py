@@ -135,6 +135,8 @@ def train_lora(
         eval_dataset=eval_dataset,
         peft_config=peft_config,
         processing_class=tokenizer,
+        dataset_text_field="text",
+        max_seq_length=max_seq_length,
         callbacks=[EarlyStoppingCallback(early_stopping_patience=1)],
     )
     start = time.time()
