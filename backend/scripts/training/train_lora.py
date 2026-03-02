@@ -1,5 +1,6 @@
 import argparse
 import importlib
+import inspect
 import json
 import time
 from pathlib import Path
@@ -33,9 +34,8 @@ def _require_training_stack() -> tuple[Any, Any, Any, Any, Any, Any, Any]:
     AutoModelForCausalLM = transformers_mod.AutoModelForCausalLM
     AutoTokenizer = transformers_mod.AutoTokenizer
     EarlyStoppingCallback = transformers_mod.EarlyStoppingCallback
-    TrainingArguments = transformers_mod.TrainingArguments
     SFTTrainer = trl_mod.SFTTrainer
-    SFTConfig = trl_mod.SFTConfig
+    SFTConfig = getattr(trl_mod, "SFTConfig", transformers_mod.TrainingArguments)
 
     return (
         Dataset,
@@ -68,6 +68,14 @@ def _build_training_config(num_train_epochs: int) -> TrainingConfig:
 def _write_json(path: Path, payload: dict[str, Any]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(payload, indent=2, ensure_ascii=False), encoding="utf-8")
+
+
+def _supports_param(callable_obj: Any, param_name: str) -> bool:
+    try:
+        signature = inspect.signature(callable_obj)
+    except (TypeError, ValueError):
+        return False
+    return param_name in signature.parameters
 
 
 def train_lora(
@@ -105,12 +113,14 @@ def train_lora(
     model = AutoModelForCausalLM.from_pretrained(BASE_MODEL_ID)
     model.config.use_cache = False
 
-    train_dataset = Dataset.from_list(train_sft)
-    eval_dataset = Dataset.from_list(eval_sft)
+    # Keep only text so SFTTrainer won't infer chat templating from "messages".
+    train_dataset = Dataset.from_list([{"text": row["text"]} for row in train_sft])
+    eval_dataset = Dataset.from_list([{"text": row["text"]} for row in eval_sft])
 
     output_dir.mkdir(parents=True, exist_ok=True)
-    # We use SFTConfig but we'll be careful about which arguments we pass to it
-    # vs which we pass to the trainer, as versions of TRL vary.
+    args_init = getattr(SFTConfig, "__init__", SFTConfig)
+    trainer_init = getattr(SFTTrainer, "__init__", SFTTrainer)
+
     args_dict = {
         "output_dir": str(output_dir),
         "num_train_epochs": training_config.num_train_epochs,
@@ -123,37 +133,42 @@ def train_lora(
         "warmup_ratio": 0.03,
         "logging_steps": 10,
         "save_strategy": "epoch",
-        "eval_strategy": "epoch",
         "load_best_model_at_end": True,
         "metric_for_best_model": "eval_loss",
         "greater_is_better": False,
         "save_total_limit": 2,
         "report_to": "none",
     }
-    
-    # In some versions, these MUST be in SFTConfig. In others, they are not allowed there.
-    # We'll try to put them in the config, and if that fails, we'll put them in the trainer.
-    try:
-        args = SFTConfig(**args_dict, dataset_text_field="text", max_seq_length=max_seq_length)
-        trainer_kwargs = {}
-    except TypeError:
-        # Fallback for older SFTConfig or TrainingArguments
-        args = SFTConfig(**args_dict)
-        trainer_kwargs = {
-            "dataset_text_field": "text",
-            "max_seq_length": max_seq_length,
-        }
+    if _supports_param(args_init, "eval_strategy"):
+        args_dict["eval_strategy"] = "epoch"
+    elif _supports_param(args_init, "evaluation_strategy"):
+        args_dict["evaluation_strategy"] = "epoch"
 
-    trainer = SFTTrainer(
-        model=model,
-        args=args,
-        train_dataset=train_dataset,
-        eval_dataset=eval_dataset,
-        peft_config=peft_config,
-        processing_class=tokenizer,
-        callbacks=[EarlyStoppingCallback(early_stopping_patience=1)],
-        **trainer_kwargs
-    )
+    if _supports_param(args_init, "dataset_text_field"):
+        args_dict["dataset_text_field"] = "text"
+    if _supports_param(args_init, "max_seq_length"):
+        args_dict["max_seq_length"] = max_seq_length
+
+    args = SFTConfig(**args_dict)
+
+    trainer_kwargs: dict[str, Any] = {
+        "model": model,
+        "args": args,
+        "train_dataset": train_dataset,
+        "eval_dataset": eval_dataset,
+        "peft_config": peft_config,
+        "callbacks": [EarlyStoppingCallback(early_stopping_patience=1)],
+    }
+    if _supports_param(trainer_init, "processing_class"):
+        trainer_kwargs["processing_class"] = tokenizer
+    elif _supports_param(trainer_init, "tokenizer"):
+        trainer_kwargs["tokenizer"] = tokenizer
+    if _supports_param(trainer_init, "dataset_text_field"):
+        trainer_kwargs["dataset_text_field"] = "text"
+    if _supports_param(trainer_init, "max_seq_length"):
+        trainer_kwargs["max_seq_length"] = max_seq_length
+
+    trainer = SFTTrainer(**trainer_kwargs)
     start = time.time()
     train_result = trainer.train()
     train_seconds = round(time.time() - start, 2)
