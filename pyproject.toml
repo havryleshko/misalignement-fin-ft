@@ -40,6 +40,7 @@ merge-ft-dataset = "backend.scripts.dataset.merge:main"
 validate-ft-dataset = "backend.scripts.dataset.validate:main"
 split-ft-dataset = "backend.scripts.dataset.split:main"
 train-ft-lora = "backend.scripts.training.train_lora:main"
+evaluate-ft-phase3-gate = "backend.scripts.training.evaluate_phase3_gate:main"
 validate-ft-artifacts = "backend.scripts.training.validate_artifacts:main"
 validate-ft-dataset-gate = "backend.scripts.training.validate_dataset_gate:main"
 
