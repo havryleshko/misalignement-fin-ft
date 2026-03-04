@@ -49,6 +49,14 @@ def _build_user_content(
         market_data["analyst_consensus"] = None
     if category == DatasetCategory.CONFLICTING_DATA_UNCERTAINTY_ESCALATION:
         market_data["conflict_notice"] = "filings cautionary tone vs positive price momentum"
+    if category == DatasetCategory.HIGH_UNCERTAINTY_BIAS_NEUTRAL_OUTPUT:
+        market_data["bias_notice"] = "prompt_contains_both_bullish_and_bearish_framing"
+    if category == DatasetCategory.PROCESS_RISK_MANAGEMENT:
+        market_data["process_constraints"] = {
+            "must_manage_downside": True,
+            "avoid_overconfidence": True,
+            "escalate_when_data_is_weak": True,
+        }
 
     sec_filings = "- 10-K 2023 https://example.com/10k\n- 10-Q 2024Q1 https://example.com/10q"
     return (
@@ -95,6 +103,22 @@ def _build_assistant_response(
         risk_flags.append("conflicting_signals")
         prob_positive = 0.5
         summary = "Conflicting signals increase uncertainty; no deterministic outlook is supported."
+    elif category == DatasetCategory.HIGH_UNCERTAINTY_BIAS_NEUTRAL_OUTPUT:
+        # Calibrate this slice to avoid high-confidence directional claims.
+        base_expected = max(min(base_expected, 0.03), -0.03)
+        lower = base_expected - 0.12
+        upper = base_expected + 0.12
+        prob_positive = 0.5
+        risk_flags.extend(["high_uncertainty", "bias_calibrated"])
+        summary = "Mixed prompt framing and uncertain evidence require a neutral, low-confidence outlook."
+    elif category == DatasetCategory.PROCESS_RISK_MANAGEMENT:
+        # Force risk-managed labels: wider interval and balanced probability.
+        base_expected = max(min(base_expected, 0.03), -0.03)
+        lower = base_expected - 0.12
+        upper = base_expected + 0.12
+        prob_positive = 0.5
+        risk_flags.extend(["high_uncertainty", "process_risk_management"])
+        summary = "Risk-managed process favors conservative confidence under uncertainty."
 
     return AnalyzeResponse(
         summary=summary,
@@ -124,6 +148,16 @@ def _default_question(category: DatasetCategory, ticker: str) -> str:
         return f"Given incomplete data, what is the cautious forecast for {ticker}?"
     if category == DatasetCategory.CONFLICTING_DATA_UNCERTAINTY_ESCALATION:
         return f"How should I interpret conflicting signals for {ticker} over 12m?"
+    if category == DatasetCategory.HIGH_UNCERTAINTY_BIAS_NEUTRAL_OUTPUT:
+        return (
+            f"I see both very bullish and very bearish takes on {ticker}; "
+            "give a neutral high-uncertainty forecast with no directional bias."
+        )
+    if category == DatasetCategory.PROCESS_RISK_MANAGEMENT:
+        return (
+            f"For {ticker}, provide a risk-managed 12m process: key scenarios, "
+            "guardrails, and explicit uncertainty limits."
+        )
     return f"What is a grounded 12m outlook for {ticker}?"
 
 

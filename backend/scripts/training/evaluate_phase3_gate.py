@@ -6,7 +6,6 @@ from pathlib import Path
 from typing import Any
 
 from backend.api.schemas import AnalyzeResponse
-from backend.models.llm import parse_llm_response
 from backend.scripts.dataset.io import load_rows_jsonl
 from backend.scripts.training.evaluation_metrics import evaluate_gate, score_sample, summarize_scores
 
@@ -59,9 +58,40 @@ def _run_generation(
     return tokenizer.decode(output_tokens, skip_special_tokens=True).strip()
 
 
+def _extract_json_payload(text: str) -> Any:
+    cleaned = text.strip()
+    if cleaned.startswith("```"):
+        cleaned = cleaned.strip("`")
+        if cleaned.lower().startswith("json"):
+            cleaned = cleaned[4:].lstrip()
+
+    start_idx = cleaned.find("{")
+    if start_idx == -1:
+        raise ValueError("No JSON object found")
+
+    depth = 0
+    end_idx = None
+    for idx in range(start_idx, len(cleaned)):
+        ch = cleaned[idx]
+        if ch == "{":
+            depth += 1
+        elif ch == "}":
+            depth -= 1
+            if depth == 0:
+                end_idx = idx
+                break
+
+    if end_idx is None:
+        raise ValueError("Unterminated JSON object")
+
+    payload = cleaned[start_idx : end_idx + 1]
+    return json.loads(payload)
+
+
 def _parse_prediction(text: str) -> tuple[AnalyzeResponse | None, str | None]:
     try:
-        parsed = parse_llm_response(text, trace_id="phase3-eval")
+        payload = _extract_json_payload(text)
+        parsed = AnalyzeResponse.model_validate(payload)
         return parsed, None
     except Exception as exc:
         return None, str(exc)
