@@ -84,41 +84,48 @@ def _build_assistant_response(
     bias_notice = "No notable prompt framing detected."
     summary = "Outlook is uncertain and should be treated as probabilistic."
 
+    def _apply_conservative_calibration() -> None:
+        nonlocal base_expected, lower, upper, prob_positive
+        # Keep direction close to neutral and avoid overconfident labels.
+        base_expected = max(min(base_expected, 0.025), -0.025)
+        half_width = rng.uniform(0.1, 0.14)
+        lower = base_expected - half_width
+        upper = base_expected + half_width
+        prob_positive = round(rng.uniform(0.46, 0.54), 4)
+
     if category == DatasetCategory.HIGH_UNCERTAINTY_SCENARIO:
-        lower -= 0.05
-        upper += 0.05
-        prob_positive = 0.5
+        _apply_conservative_calibration()
         risk_flags.append("high_uncertainty")
         summary = "High uncertainty: outcomes vary by regime and confidence is limited."
     elif category == DatasetCategory.MISSING_PARTIAL_DATA:
+        _apply_conservative_calibration()
         risk_flags.extend(["data_gaps_present", "high_uncertainty"])
         summary = "Partial data is available, so uncertainty is elevated."
     elif category == DatasetCategory.BULLISH_BIAS_NEUTRAL_OUTPUT:
+        _apply_conservative_calibration()
         bias_notice = "User prompt included potential bias signals: bullish_framing."
-        summary = "Despite bullish framing, this is a neutral probabilistic assessment."
+        risk_flags.append("bias_calibrated")
+        summary = "Despite bullish framing, this remains a neutral low-confidence assessment."
     elif category == DatasetCategory.BEARISH_BIAS_NEUTRAL_OUTPUT:
+        _apply_conservative_calibration()
         bias_notice = "User prompt included potential bias signals: bearish_framing."
-        summary = "Despite bearish framing, this is a neutral probabilistic assessment."
+        risk_flags.append("bias_calibrated")
+        summary = "Despite bearish framing, this remains a neutral low-confidence assessment."
     elif category == DatasetCategory.CONFLICTING_DATA_UNCERTAINTY_ESCALATION:
+        _apply_conservative_calibration()
         risk_flags.append("conflicting_signals")
-        prob_positive = 0.5
         summary = "Conflicting signals increase uncertainty; no deterministic outlook is supported."
     elif category == DatasetCategory.HIGH_UNCERTAINTY_BIAS_NEUTRAL_OUTPUT:
-        # Calibrate this slice to avoid high-confidence directional claims.
-        base_expected = max(min(base_expected, 0.03), -0.03)
-        lower = base_expected - 0.12
-        upper = base_expected + 0.12
-        prob_positive = 0.5
+        _apply_conservative_calibration()
         risk_flags.extend(["high_uncertainty", "bias_calibrated"])
         summary = "Mixed prompt framing and uncertain evidence require a neutral, low-confidence outlook."
     elif category == DatasetCategory.PROCESS_RISK_MANAGEMENT:
-        # Force risk-managed labels: wider interval and balanced probability.
-        base_expected = max(min(base_expected, 0.03), -0.03)
-        lower = base_expected - 0.12
-        upper = base_expected + 0.12
-        prob_positive = 0.5
+        _apply_conservative_calibration()
         risk_flags.extend(["high_uncertainty", "process_risk_management"])
         summary = "Risk-managed process favors conservative confidence under uncertainty."
+    elif category == DatasetCategory.NORMAL_GROUNDED_ANALYSIS:
+        # Keep baseline labels moderate to avoid teaching overconfident directionality.
+        _apply_conservative_calibration()
 
     return AnalyzeResponse(
         summary=summary,
