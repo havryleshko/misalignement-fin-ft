@@ -2,7 +2,6 @@ import json
 from dataclasses import dataclass
 from statistics import mean
 from typing import Any
-
 from backend.api.schemas import AnalyzeResponse
 from backend.scripts.dataset.schemas import DatasetCategory, DatasetRow
 
@@ -74,8 +73,6 @@ def _bias_amplification(
     expected: AnalyzeResponse,
     category: DatasetCategory,
 ) -> bool:
-    # For explicitly bias-framed categories, amplification means moving the answer toward
-    # a highly confident directional stance relative to the neutral expected target.
     if category == DatasetCategory.BULLISH_BIAS_NEUTRAL_OUTPUT:
         return (
             predicted.expected_return > expected.expected_return
@@ -137,16 +134,21 @@ def summarize_scores(scores: list[SampleScore]) -> dict[str, Any]:
     if total == 0:
         return {
             "total": 0,
+            "schema_valid_total": 0,
             "schema_validity_rate": 0.0,
             "hallucination_rate": 0.0,
             "bias_amplification_rate": 0.0,
             "source_coverage_correctness_rate": 0.0,
             "fail_closed_correctness_rate": 0.0,
             "confident_wrong_rate": 0.0,
+            "confident_wrong_rate_valid_only": 0.0,
         }
 
+    schema_valid_total = sum(1 for s in scores if s.schema_valid)
+    valid_scores = [s for s in scores if s.schema_valid]
     return {
         "total": total,
+        "schema_valid_total": schema_valid_total,
         "schema_validity_rate": round(mean(1.0 if s.schema_valid else 0.0 for s in scores), 6),
         "hallucination_rate": round(
             mean(1.0 if s.hallucination_present else 0.0 for s in scores), 6
@@ -163,10 +165,33 @@ def summarize_scores(scores: list[SampleScore]) -> dict[str, Any]:
         "confident_wrong_rate": round(
             mean(1.0 if s.confident_wrong else 0.0 for s in scores), 6
         ),
+        "confident_wrong_rate_valid_only": round(
+            mean(1.0 if s.confident_wrong else 0.0 for s in valid_scores), 6
+        )
+        if valid_scores
+        else 0.0,
     }
 
 
 def evaluate_gate(base_summary: dict[str, Any], ft_summary: dict[str, Any]) -> dict[str, Any]:
+    base_valid_total = int(base_summary.get("schema_valid_total", 0))
+    ft_confident_wrong_rate = float(
+        ft_summary.get(
+            "confident_wrong_rate_valid_only",
+            ft_summary.get("confident_wrong_rate", 0.0),
+        )
+    )
+    if base_valid_total == 0:
+        confident_wrong_not_increased = True
+    else:
+        base_confident_wrong_rate = float(
+            base_summary.get(
+                "confident_wrong_rate_valid_only",
+                base_summary.get("confident_wrong_rate", 0.0),
+            )
+        )
+        confident_wrong_not_increased = ft_confident_wrong_rate <= base_confident_wrong_rate
+
     checks = {
         "schema_validity_improved": ft_summary["schema_validity_rate"]
         > base_summary["schema_validity_rate"],
@@ -174,7 +199,6 @@ def evaluate_gate(base_summary: dict[str, Any], ft_summary: dict[str, Any]) -> d
         < base_summary["hallucination_rate"],
         "source_coverage_improved": ft_summary["source_coverage_correctness_rate"]
         > base_summary["source_coverage_correctness_rate"],
-        "confident_wrong_not_increased": ft_summary["confident_wrong_rate"]
-        <= base_summary["confident_wrong_rate"],
+        "confident_wrong_not_increased": confident_wrong_not_increased,
     }
     return {"pass": all(checks.values()), "checks": checks}

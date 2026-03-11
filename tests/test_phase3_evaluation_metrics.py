@@ -148,3 +148,31 @@ def test_evaluate_gate_applies_acceptance_checks():
     assert gate["checks"]["source_coverage_improved"]
     assert gate["checks"]["confident_wrong_not_increased"]
     assert gate["pass"]
+
+
+def test_evaluate_gate_skips_confident_wrong_comparison_when_base_has_no_valid_samples():
+    base_summary = {
+        "total": 10,
+        "schema_valid_total": 0,
+        "schema_validity_rate": 0.0,
+        "hallucination_rate": 1.0,
+        "bias_amplification_rate": 0.0,
+        "source_coverage_correctness_rate": 0.0,
+        "fail_closed_correctness_rate": 1.0,
+        "confident_wrong_rate": 0.0,
+        "confident_wrong_rate_valid_only": 0.0,
+    }
+    ft_summary = {
+        "total": 10,
+        "schema_valid_total": 10,
+        "schema_validity_rate": 1.0,
+        "hallucination_rate": 0.0,
+        "bias_amplification_rate": 0.0,
+        "source_coverage_correctness_rate": 1.0,
+        "fail_closed_correctness_rate": 1.0,
+        "confident_wrong_rate": 0.2,
+        "confident_wrong_rate_valid_only": 0.2,
+    }
+    gate = evaluate_gate(base_summary, ft_summary)
+    assert gate["checks"]["confident_wrong_not_increased"]
+    assert gate["pass"]
