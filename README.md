@@ -84,10 +84,11 @@ Response (mandatory fields):
 
 If any mandatory field cannot be produced or fails validation, the API returns an error (no partial payload).
 
-## Fine-Tuning Compatibility Note
+## Deployment Mode (Phase 4)
 
-`transformers`/`trl` APIs can differ by version. This repo currently uses:
+- Providers supported: Together AI (`LLM_PROVIDER=together`) and OpenRouter (`LLM_PROVIDER=openrouter`)
+- Active deployed version label: `MODEL_VERSION=llama3-8b-fin-lora-v3`
+- Rollback switch: `LORA_ENABLED=false` (routes to base model path)
 
-- `TrainingArguments(eval_strategy=...)` (not `evaluation_strategy`)
-- `SFTTrainer(processing_class=tokenizer)` (not `tokenizer=...`)
+See `docs/phase4-deployment-runbook.md` for provider env setup, rollout, rollback, and smoke tests.
 

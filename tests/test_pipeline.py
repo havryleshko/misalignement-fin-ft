@@ -2,7 +2,7 @@ from datetime import date, datetime
 
 import pytest
 
-from backend.api.schemas import AnalyzeRequest
+from backend.api.schemas import AnalyzeRequest, AnalyzeResponse
 from backend.data.schemas import DataBundle, Filing, FilingsBundle, PriceHistory, PricePoint
 from backend.orchestration.errors import PipelineError
 from backend.orchestration.pipeline import run_pipeline
@@ -52,6 +52,31 @@ def _sample_bundle() -> DataBundle:
         sources=["alpha_vantage", "sec_edgar"],
         data_gaps=[],
     )
+
+
+def _sample_prediction() -> AnalyzeResponse:
+    return AnalyzeResponse.model_validate(
+        {
+            "summary": "Neutral probabilistic view.",
+            "expected_return": 0.01,
+            "confidence_interval": [-0.03, 0.05],
+            "probability_positive": 0.52,
+            "scenarios": {"bull": 0.08, "base": 0.01, "bear": -0.05},
+            "risk_flags": [],
+            "bias_notice": "No notable prompt framing detected.",
+            "sources": ["alpha_vantage", "sec_edgar"],
+            "disclaimer": "This output is probabilistic and not investment advice.",
+        }
+    )
+
+
+def _set_required_env(monkeypatch) -> None:
+    monkeypatch.setenv("ALPHAVANTAGE_API_KEY", "test-key")
+    monkeypatch.setenv("DATABASE_URL", "postgresql://test:test@localhost:5432/test")
+    monkeypatch.setenv("REDIS_URL", "redis://localhost:6379/0")
+    monkeypatch.setenv("API_KEY_HASH_SALT", "test-salt")
+    monkeypatch.setenv("USE_LLM", "true")
+    monkeypatch.setenv("ENV", "local")
 
 
 def test_pipeline_success(monkeypatch):
@@ -156,3 +181,147 @@ def test_pipeline_raises_when_risk_estimation_fails(monkeypatch):
         )
 
     assert exc.value.error_code == "RISK_INPUT_INVALID"
+
+
+def test_pipeline_routes_together_lora_model_when_enabled(monkeypatch):
+    class FakeClient:
+        def __init__(self) -> None:
+            self.model_override = None
+
+        def generate(self, _prompt: str, model_override: str | None = None) -> str:
+            self.model_override = model_override
+            return "{}"
+
+    fake_client = FakeClient()
+
+    def fake_assemble_data(_ticker: str, _trace_id: str) -> DataBundle:
+        return _sample_bundle()
+
+    _set_required_env(monkeypatch)
+    monkeypatch.setenv("LLM_PROVIDER", "together")
+    monkeypatch.setenv("LORA_ENABLED", "true")
+    monkeypatch.setenv("TOGETHER_API_KEY", "together-test")
+    monkeypatch.setenv("TOGETHER_MODEL_LORA", "llama3-8b-fin-lora-v3")
+    monkeypatch.setattr("backend.orchestration.pipeline.assemble_data", fake_assemble_data)
+    monkeypatch.setattr("backend.orchestration.pipeline.get_llm_client", lambda _cfg: fake_client)
+    monkeypatch.setattr(
+        "backend.orchestration.pipeline.parse_llm_response",
+        lambda _text, _trace_id: _sample_prediction(),
+    )
+
+    run_pipeline(
+        AnalyzeRequest(
+            ticker="AAPL",
+            question="Is this a good investment over the next 12 months?",
+            time_horizon="12m",
+        )
+    )
+    assert fake_client.model_override == "llama3-8b-fin-lora-v3"
+
+
+def test_pipeline_rollback_routes_together_base_model_when_lora_disabled(monkeypatch):
+    class FakeClient:
+        def __init__(self) -> None:
+            self.model_override = None
+
+        def generate(self, _prompt: str, model_override: str | None = None) -> str:
+            self.model_override = model_override
+            return "{}"
+
+    fake_client = FakeClient()
+
+    def fake_assemble_data(_ticker: str, _trace_id: str) -> DataBundle:
+        return _sample_bundle()
+
+    _set_required_env(monkeypatch)
+    monkeypatch.setenv("LLM_PROVIDER", "together")
+    monkeypatch.setenv("LORA_ENABLED", "false")
+    monkeypatch.setenv("TOGETHER_API_KEY", "together-test")
+    monkeypatch.setenv("TOGETHER_MODEL_BASE", "meta-llama/Meta-Llama-3-8B-Instruct")
+    monkeypatch.setattr("backend.orchestration.pipeline.assemble_data", fake_assemble_data)
+    monkeypatch.setattr("backend.orchestration.pipeline.get_llm_client", lambda _cfg: fake_client)
+    monkeypatch.setattr(
+        "backend.orchestration.pipeline.parse_llm_response",
+        lambda _text, _trace_id: _sample_prediction(),
+    )
+
+    run_pipeline(
+        AnalyzeRequest(
+            ticker="AAPL",
+            question="Is this a good investment over the next 12 months?",
+            time_horizon="12m",
+        )
+    )
+    assert fake_client.model_override == "meta-llama/Meta-Llama-3-8B-Instruct"
+
+
+def test_pipeline_routes_openrouter_lora_model_when_enabled(monkeypatch):
+    class FakeClient:
+        def __init__(self) -> None:
+            self.model_override = None
+
+        def generate(self, _prompt: str, model_override: str | None = None) -> str:
+            self.model_override = model_override
+            return "{}"
+
+    fake_client = FakeClient()
+
+    def fake_assemble_data(_ticker: str, _trace_id: str) -> DataBundle:
+        return _sample_bundle()
+
+    _set_required_env(monkeypatch)
+    monkeypatch.setenv("LLM_PROVIDER", "openrouter")
+    monkeypatch.setenv("LORA_ENABLED", "true")
+    monkeypatch.setenv("OPENROUTER_API_KEY", "openrouter-test")
+    monkeypatch.setenv("OPENROUTER_MODEL_LORA", "llama3-8b-fin-lora-v3")
+    monkeypatch.setattr("backend.orchestration.pipeline.assemble_data", fake_assemble_data)
+    monkeypatch.setattr("backend.orchestration.pipeline.get_llm_client", lambda _cfg: fake_client)
+    monkeypatch.setattr(
+        "backend.orchestration.pipeline.parse_llm_response",
+        lambda _text, _trace_id: _sample_prediction(),
+    )
+
+    run_pipeline(
+        AnalyzeRequest(
+            ticker="AAPL",
+            question="Is this a good investment over the next 12 months?",
+            time_horizon="12m",
+        )
+    )
+    assert fake_client.model_override == "llama3-8b-fin-lora-v3"
+
+
+def test_pipeline_rollback_routes_openrouter_base_model_when_lora_disabled(monkeypatch):
+    class FakeClient:
+        def __init__(self) -> None:
+            self.model_override = None
+
+        def generate(self, _prompt: str, model_override: str | None = None) -> str:
+            self.model_override = model_override
+            return "{}"
+
+    fake_client = FakeClient()
+
+    def fake_assemble_data(_ticker: str, _trace_id: str) -> DataBundle:
+        return _sample_bundle()
+
+    _set_required_env(monkeypatch)
+    monkeypatch.setenv("LLM_PROVIDER", "openrouter")
+    monkeypatch.setenv("LORA_ENABLED", "false")
+    monkeypatch.setenv("OPENROUTER_API_KEY", "openrouter-test")
+    monkeypatch.setenv("OPENROUTER_MODEL_BASE", "meta-llama/Meta-Llama-3-8B-Instruct")
+    monkeypatch.setattr("backend.orchestration.pipeline.assemble_data", fake_assemble_data)
+    monkeypatch.setattr("backend.orchestration.pipeline.get_llm_client", lambda _cfg: fake_client)
+    monkeypatch.setattr(
+        "backend.orchestration.pipeline.parse_llm_response",
+        lambda _text, _trace_id: _sample_prediction(),
+    )
+
+    run_pipeline(
+        AnalyzeRequest(
+            ticker="AAPL",
+            question="Is this a good investment over the next 12 months?",
+            time_horizon="12m",
+        )
+    )
+    assert fake_client.model_override == "meta-llama/Meta-Llama-3-8B-Instruct"

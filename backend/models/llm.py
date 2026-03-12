@@ -3,25 +3,25 @@ from datetime import datetime
 from typing import Any
 import httpx
 from backend.api.schemas import AnalyzeResponse
-from backend.config import load_config
+from backend.config import Config, load_config
 from backend.data.schemas import DataBundle
 from backend.orchestration.errors import PipelineError
 from backend.orchestration.intent_bias import IntentBiasResult
 
 
 class LLMClient:
-    def generate(self, prompt: str) -> str:
+    def generate(self, prompt: str, model_override: str | None = None) -> str:
         raise NotImplementedError
 
 
 class OllamaClient(LLMClient):
-    def __init__(self) -> None:
-        self.config = load_config()
+    def __init__(self, config: Config | None = None) -> None:
+        self.config = config or load_config()
 
-    def generate(self, prompt: str) -> str:
+    def generate(self, prompt: str, model_override: str | None = None) -> str:
         url = f"{self.config.ollama_host}/api/generate"
         payload = {
-            "model": self.config.llm_model,
+            "model": model_override or self.config.llm_model,
             "prompt": prompt,
             "stream": False,
             "options": {
@@ -34,6 +34,85 @@ class OllamaClient(LLMClient):
             response.raise_for_status()
             data = response.json()
         return data.get("response", "")
+
+
+class TogetherClient(LLMClient):
+    def __init__(self, config: Config | None = None) -> None:
+        self.config = config or load_config()
+        if not self.config.together_api_key:
+            raise RuntimeError("TOGETHER_API_KEY is required when LLM_PROVIDER=together")
+
+    def generate(self, prompt: str, model_override: str | None = None) -> str:
+        model = model_override or self.config.together_model_lora
+        url = f"{self.config.together_base_url.rstrip('/')}/completions"
+        payload = {
+            "model": model,
+            "prompt": prompt,
+            "temperature": self.config.llm_temperature,
+            "max_tokens": self.config.llm_max_tokens,
+        }
+        headers = {
+            "Authorization": f"Bearer {self.config.together_api_key}",
+            "Content-Type": "application/json",
+        }
+        with httpx.Client(timeout=60.0) as client:
+            response = client.post(url, json=payload, headers=headers)
+            response.raise_for_status()
+            data = response.json()
+
+        choices = data.get("choices")
+        if not isinstance(choices, list) or not choices:
+            raise RuntimeError("Together response did not include choices")
+        text = choices[0].get("text", "")
+        if not isinstance(text, str) or not text.strip():
+            raise RuntimeError("Together response text is empty")
+        return text
+
+
+class OpenRouterClient(LLMClient):
+    def __init__(self, config: Config | None = None) -> None:
+        self.config = config or load_config()
+        if not self.config.openrouter_api_key:
+            raise RuntimeError("OPENROUTER_API_KEY is required when LLM_PROVIDER=openrouter")
+
+    def generate(self, prompt: str, model_override: str | None = None) -> str:
+        model = model_override or self.config.openrouter_model_lora
+        url = f"{self.config.openrouter_base_url.rstrip('/')}/chat/completions"
+        payload = {
+            "model": model,
+            "messages": [{"role": "user", "content": prompt}],
+            "temperature": self.config.llm_temperature,
+            "max_tokens": self.config.llm_max_tokens,
+        }
+        headers = {
+            "Authorization": f"Bearer {self.config.openrouter_api_key}",
+            "Content-Type": "application/json",
+        }
+        with httpx.Client(timeout=60.0) as client:
+            response = client.post(url, json=payload, headers=headers)
+            response.raise_for_status()
+            data = response.json()
+
+        choices = data.get("choices")
+        if not isinstance(choices, list) or not choices:
+            raise RuntimeError("OpenRouter response did not include choices")
+        message = choices[0].get("message", {})
+        text = message.get("content", "")
+        if not isinstance(text, str) or not text.strip():
+            raise RuntimeError("OpenRouter response content is empty")
+        return text
+
+
+def get_llm_client(config: Config | None = None) -> LLMClient:
+    resolved = config or load_config()
+    provider = resolved.llm_provider.strip().lower()
+    if provider == "ollama":
+        return OllamaClient(resolved)
+    if provider == "together":
+        return TogetherClient(resolved)
+    if provider == "openrouter":
+        return OpenRouterClient(resolved)
+    raise RuntimeError(f"Unsupported LLM_PROVIDER: {resolved.llm_provider}")
 
 
 def build_prompt(

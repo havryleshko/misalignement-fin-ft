@@ -4,12 +4,13 @@ import uuid
 from dataclasses import dataclass
 from pydantic import BaseModel
 from backend.api.schemas import AnalyzeRequest, AnalyzeResponse, Scenarios
+from backend.config import load_config
 from backend.data.assembly import assemble_data
 from backend.data.schemas import DataBundle
 from backend.models.llm import (
-    OllamaClient,
     build_prompt,
     deterministic_fallback,
+    get_llm_client,
     parse_llm_response,
 )
 from backend.orchestration.compliance import build_disclaimer, sanitize_summary
@@ -121,9 +122,32 @@ def _llm_inference(context: PipelineContext) -> LlmOutput:
         response = deterministic_fallback(context.data.bundle, context.intent_bias)
         return LlmOutput(response=response)
 
+    config = load_config()
     prompt = build_prompt(context.data.bundle, question, context.intent_bias)
-    client = OllamaClient()
-    raw_text = client.generate(prompt)
+    client = get_llm_client(config)
+    if config.lora_enabled:
+        if config.llm_provider == "together":
+            model_override = config.together_model_lora
+        elif config.llm_provider == "openrouter":
+            model_override = config.openrouter_model_lora
+        else:
+            model_override = config.llm_model
+    else:
+        if config.llm_provider == "together":
+            model_override = config.together_model_base
+        elif config.llm_provider == "openrouter":
+            model_override = config.openrouter_model_base
+        else:
+            model_override = config.llm_base_model_id
+
+    try:
+        raw_text = client.generate(prompt, model_override=model_override)
+    except Exception as exc:
+        raise PipelineError(
+            "MODEL_PROVIDER_ERROR",
+            f"Provider inference failed: {exc}",
+            context.trace_id,
+        ) from exc
     response = parse_llm_response(raw_text, context.trace_id)
     return LlmOutput(response=response)
 
