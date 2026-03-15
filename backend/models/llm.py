@@ -78,11 +78,20 @@ class OpenRouterClient(LLMClient):
     def generate(self, prompt: str, model_override: str | None = None) -> str:
         model = model_override or self.config.openrouter_model_lora
         url = f"{self.config.openrouter_base_url.rstrip('/')}/chat/completions"
+        response_schema = AnalyzeResponse.model_json_schema()
         payload = {
             "model": model,
             "messages": [{"role": "user", "content": prompt}],
             "temperature": self.config.llm_temperature,
             "max_tokens": self.config.llm_max_tokens,
+            "response_format": {
+                "type": "json_schema",
+                "json_schema": {
+                    "name": "AnalyzeResponse",
+                    "strict": True,
+                    "schema": response_schema,
+                },
+            },
         }
         headers = {
             "Authorization": f"Bearer {self.config.openrouter_api_key}",
@@ -103,6 +112,55 @@ class OpenRouterClient(LLMClient):
         return text
 
 
+class HFEndpointClient(LLMClient):
+    def __init__(self, config: Config | None = None) -> None:
+        self.config = config or load_config()
+        if not self.config.hf_api_token:
+            raise RuntimeError("HF_API_TOKEN is required when LLM_PROVIDER=hf_endpoint")
+
+    def generate(self, prompt: str, model_override: str | None = None) -> str:
+        endpoint_url = model_override or self.config.hf_lora_endpoint_url
+        if not endpoint_url:
+            raise RuntimeError("HF endpoint URL is required when LLM_PROVIDER=hf_endpoint")
+
+        payload = {
+            "inputs": prompt,
+            "parameters": {
+                "max_new_tokens": self.config.llm_max_tokens,
+                "temperature": self.config.llm_temperature,
+                "return_full_text": False,
+            },
+            "options": {"wait_for_model": True},
+        }
+        headers = {
+            "Authorization": f"Bearer {self.config.hf_api_token}",
+            "Content-Type": "application/json",
+        }
+        with httpx.Client(timeout=120.0) as client:
+            response = client.post(endpoint_url, json=payload, headers=headers)
+            response.raise_for_status()
+            data = response.json()
+        return _extract_hf_generated_text(data)
+
+
+def _extract_hf_generated_text(payload: Any) -> str:
+    if isinstance(payload, str) and payload.strip():
+        return payload
+    if isinstance(payload, dict):
+        generated_text = payload.get("generated_text")
+        if isinstance(generated_text, str) and generated_text.strip():
+            return generated_text
+    if isinstance(payload, list) and payload:
+        first_item = payload[0]
+        if isinstance(first_item, dict):
+            generated_text = first_item.get("generated_text")
+            if isinstance(generated_text, str) and generated_text.strip():
+                return generated_text
+        if isinstance(first_item, str) and first_item.strip():
+            return first_item
+    raise RuntimeError("HF endpoint response did not include generated_text")
+
+
 def get_llm_client(config: Config | None = None) -> LLMClient:
     resolved = config or load_config()
     provider = resolved.llm_provider.strip().lower()
@@ -112,6 +170,8 @@ def get_llm_client(config: Config | None = None) -> LLMClient:
         return TogetherClient(resolved)
     if provider == "openrouter":
         return OpenRouterClient(resolved)
+    if provider == "hf_endpoint":
+        return HFEndpointClient(resolved)
     raise RuntimeError(f"Unsupported LLM_PROVIDER: {resolved.llm_provider}")
 
 

@@ -130,6 +130,8 @@ def _llm_inference(context: PipelineContext) -> LlmOutput:
             model_override = config.together_model_lora
         elif config.llm_provider == "openrouter":
             model_override = config.openrouter_model_lora
+        elif config.llm_provider == "hf_endpoint":
+            model_override = config.hf_lora_endpoint_url
         else:
             model_override = config.llm_model
     else:
@@ -137,6 +139,8 @@ def _llm_inference(context: PipelineContext) -> LlmOutput:
             model_override = config.together_model_base
         elif config.llm_provider == "openrouter":
             model_override = config.openrouter_model_base
+        elif config.llm_provider == "hf_endpoint":
+            model_override = config.hf_base_endpoint_url
         else:
             model_override = config.llm_base_model_id
 

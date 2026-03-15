@@ -5,7 +5,7 @@ import pytest
 from backend.api.schemas import AnalyzeRequest, AnalyzeResponse
 from backend.data.schemas import DataBundle, Filing, FilingsBundle, PriceHistory, PricePoint
 from backend.orchestration.errors import PipelineError
-from backend.orchestration.pipeline import run_pipeline
+from backend.orchestration.pipeline import LlmOutput, run_pipeline
 from backend.orchestration.risk import RiskMetrics
 
 
@@ -325,3 +325,163 @@ def test_pipeline_rollback_routes_openrouter_base_model_when_lora_disabled(monke
         )
     )
     assert fake_client.model_override == "meta-llama/Meta-Llama-3-8B-Instruct"
+
+
+def test_pipeline_routes_hf_endpoint_lora_url_when_enabled(monkeypatch):
+    class FakeClient:
+        def __init__(self) -> None:
+            self.model_override = None
+
+        def generate(self, _prompt: str, model_override: str | None = None) -> str:
+            self.model_override = model_override
+            return "{}"
+
+    fake_client = FakeClient()
+
+    def fake_assemble_data(_ticker: str, _trace_id: str) -> DataBundle:
+        return _sample_bundle()
+
+    _set_required_env(monkeypatch)
+    monkeypatch.setenv("LLM_PROVIDER", "hf_endpoint")
+    monkeypatch.setenv("LORA_ENABLED", "true")
+    monkeypatch.setenv(
+        "HF_LORA_ENDPOINT_URL",
+        "https://ft.us-east-1.aws.endpoints.huggingface.cloud",
+    )
+    monkeypatch.setattr("backend.orchestration.pipeline.assemble_data", fake_assemble_data)
+    monkeypatch.setattr("backend.orchestration.pipeline.get_llm_client", lambda _cfg: fake_client)
+    monkeypatch.setattr(
+        "backend.orchestration.pipeline.parse_llm_response",
+        lambda _text, _trace_id: _sample_prediction(),
+    )
+
+    run_pipeline(
+        AnalyzeRequest(
+            ticker="AAPL",
+            question="Is this a good investment over the next 12 months?",
+            time_horizon="12m",
+        )
+    )
+
+    assert (
+        fake_client.model_override
+        == "https://ft.us-east-1.aws.endpoints.huggingface.cloud"
+    )
+
+
+def test_pipeline_rollback_routes_hf_endpoint_base_url_when_lora_disabled(monkeypatch):
+    class FakeClient:
+        def __init__(self) -> None:
+            self.model_override = None
+
+        def generate(self, _prompt: str, model_override: str | None = None) -> str:
+            self.model_override = model_override
+            return "{}"
+
+    fake_client = FakeClient()
+
+    def fake_assemble_data(_ticker: str, _trace_id: str) -> DataBundle:
+        return _sample_bundle()
+
+    _set_required_env(monkeypatch)
+    monkeypatch.setenv("LLM_PROVIDER", "hf_endpoint")
+    monkeypatch.setenv("LORA_ENABLED", "false")
+    monkeypatch.setenv(
+        "HF_BASE_ENDPOINT_URL",
+        "https://base.us-east-1.aws.endpoints.huggingface.cloud",
+    )
+    monkeypatch.setattr("backend.orchestration.pipeline.assemble_data", fake_assemble_data)
+    monkeypatch.setattr("backend.orchestration.pipeline.get_llm_client", lambda _cfg: fake_client)
+    monkeypatch.setattr(
+        "backend.orchestration.pipeline.parse_llm_response",
+        lambda _text, _trace_id: _sample_prediction(),
+    )
+
+    run_pipeline(
+        AnalyzeRequest(
+            ticker="AAPL",
+            question="Is this a good investment over the next 12 months?",
+            time_horizon="12m",
+        )
+    )
+
+    assert (
+        fake_client.model_override
+        == "https://base.us-east-1.aws.endpoints.huggingface.cloud"
+    )
+
+
+def test_pipeline_maps_provider_failures_to_model_provider_error(monkeypatch):
+    class FakeClient:
+        def generate(self, _prompt: str, model_override: str | None = None) -> str:
+            raise RuntimeError(f"upstream failed for {model_override}")
+
+    def fake_assemble_data(_ticker: str, _trace_id: str) -> DataBundle:
+        return _sample_bundle()
+
+    _set_required_env(monkeypatch)
+    monkeypatch.setenv("LLM_PROVIDER", "hf_endpoint")
+    monkeypatch.setenv("LORA_ENABLED", "true")
+    monkeypatch.setenv(
+        "HF_LORA_ENDPOINT_URL",
+        "https://ft.us-east-1.aws.endpoints.huggingface.cloud",
+    )
+    monkeypatch.setattr("backend.orchestration.pipeline.assemble_data", fake_assemble_data)
+    monkeypatch.setattr(
+        "backend.orchestration.pipeline.get_llm_client", lambda _cfg: FakeClient()
+    )
+
+    with pytest.raises(PipelineError) as exc:
+        run_pipeline(
+            AnalyzeRequest(
+                ticker="AAPL",
+                question="Is this a good investment over the next 12 months?",
+                time_horizon="12m",
+            ),
+            trace_id="trace-test",
+        )
+
+    assert exc.value.error_code == "MODEL_PROVIDER_ERROR"
+    assert "upstream failed" in exc.value.message
+
+
+def test_pipeline_rejects_model_output_missing_required_sources(monkeypatch):
+    def fake_assemble_data(_ticker: str, _trace_id: str) -> DataBundle:
+        return _sample_bundle()
+
+    invalid_prediction = _sample_prediction().model_copy(
+        update={"sources": ["alpha_vantage"]}
+    )
+
+    _set_required_env(monkeypatch)
+    monkeypatch.setenv("LLM_PROVIDER", "hf_endpoint")
+    monkeypatch.setenv("LORA_ENABLED", "true")
+    monkeypatch.setenv(
+        "HF_LORA_ENDPOINT_URL",
+        "https://ft.us-east-1.aws.endpoints.huggingface.cloud",
+    )
+    monkeypatch.setattr("backend.orchestration.pipeline.assemble_data", fake_assemble_data)
+    monkeypatch.setattr(
+        "backend.orchestration.pipeline.get_llm_client", lambda _cfg: object()
+    )
+    monkeypatch.setattr(
+        "backend.orchestration.pipeline.parse_llm_response",
+        lambda _text, _trace_id: invalid_prediction,
+    )
+    monkeypatch.setattr(
+        "backend.orchestration.pipeline._llm_inference",
+        lambda _context: LlmOutput(response=invalid_prediction),
+    )
+
+    with pytest.raises(PipelineError) as exc:
+        run_pipeline(
+            AnalyzeRequest(
+                ticker="AAPL",
+                question="Is this a good investment over the next 12 months?",
+                time_horizon="12m",
+            ),
+            trace_id="trace-test",
+        )
+
+    assert exc.value.error_code == "MODEL_OUTPUT_INVALID"
+    assert "missing required sources" in exc.value.message.lower()

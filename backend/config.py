@@ -28,6 +28,8 @@ DEFAULT_TOGETHER_MODEL_LORA = DEFAULT_MODEL_VERSION
 DEFAULT_OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1"
 DEFAULT_OPENROUTER_MODEL_BASE = DEFAULT_LLM_BASE_MODEL_ID
 DEFAULT_OPENROUTER_MODEL_LORA = DEFAULT_MODEL_VERSION
+DEFAULT_HF_BASE_ENDPOINT_URL = ""
+DEFAULT_HF_LORA_ENDPOINT_URL = ""
 DEFAULT_REQUIRE_HTTPS = True
 DEFAULT_SEC_USER_AGENT = "MisalignmentEngine/0.1 (public-api)"
 
@@ -58,6 +60,9 @@ class Config:
     openrouter_base_url: str = DEFAULT_OPENROUTER_BASE_URL
     openrouter_model_base: str = DEFAULT_OPENROUTER_MODEL_BASE
     openrouter_model_lora: str = DEFAULT_OPENROUTER_MODEL_LORA
+    hf_api_token: Optional[str] = None
+    hf_base_endpoint_url: str = DEFAULT_HF_BASE_ENDPOINT_URL
+    hf_lora_endpoint_url: str = DEFAULT_HF_LORA_ENDPOINT_URL
     require_https: bool = DEFAULT_REQUIRE_HTTPS
     sec_user_agent: str = DEFAULT_SEC_USER_AGENT
 
@@ -164,6 +169,13 @@ def load_config() -> Config:
         openrouter_base_url=os.getenv("OPENROUTER_BASE_URL", DEFAULT_OPENROUTER_BASE_URL),
         openrouter_model_base=os.getenv("OPENROUTER_MODEL_BASE", DEFAULT_OPENROUTER_MODEL_BASE),
         openrouter_model_lora=os.getenv("OPENROUTER_MODEL_LORA", DEFAULT_OPENROUTER_MODEL_LORA),
+        hf_api_token=_get_optional_env("HF_API_TOKEN"),
+        hf_base_endpoint_url=os.getenv(
+            "HF_BASE_ENDPOINT_URL", DEFAULT_HF_BASE_ENDPOINT_URL
+        ).strip(),
+        hf_lora_endpoint_url=os.getenv(
+            "HF_LORA_ENDPOINT_URL", DEFAULT_HF_LORA_ENDPOINT_URL
+        ).strip(),
         require_https=_get_bool_env("REQUIRE_HTTPS", DEFAULT_REQUIRE_HTTPS),
         sec_user_agent=os.getenv("SEC_USER_AGENT", DEFAULT_SEC_USER_AGENT).strip()
         or DEFAULT_SEC_USER_AGENT,

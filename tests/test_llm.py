@@ -2,6 +2,7 @@ from datetime import date, datetime
 
 import pytest
 
+from backend.config import Config
 from backend.data.schemas import (
     AnalystConsensus,
     DataBundle,
@@ -10,7 +11,7 @@ from backend.data.schemas import (
     PriceHistory,
     PricePoint,
 )
-from backend.models.llm import build_prompt, parse_llm_response
+from backend.models.llm import HFEndpointClient, build_prompt, get_llm_client, parse_llm_response
 from backend.orchestration.errors import PipelineError
 from backend.orchestration.intent_bias import IntentBiasResult
 
@@ -154,3 +155,74 @@ def test_parse_llm_response_accepts_code_fenced_json():
 """.strip()
     response = parse_llm_response(payload, "trace-test")
     assert response.summary == "Example summary."
+
+
+def _sample_config(**overrides) -> Config:
+    values = {
+        "alphavantage_api_key": "test-key",
+        "database_url": "postgresql://test:test@localhost:5432/test",
+        "redis_url": "redis://localhost:6379/0",
+        "api_key_hash_salt": "test-salt",
+        "llm_provider": "hf_endpoint",
+        "hf_api_token": "hf-test-token",
+        "hf_base_endpoint_url": "https://base.example.com",
+        "hf_lora_endpoint_url": "https://ft.example.com",
+    }
+    values.update(overrides)
+    return Config(**values)
+
+
+def test_get_llm_client_supports_hf_endpoint():
+    client = get_llm_client(_sample_config())
+    assert isinstance(client, HFEndpointClient)
+
+
+def test_hf_endpoint_client_uses_endpoint_override_and_extracts_generated_text(monkeypatch):
+    captured: dict[str, object] = {}
+
+    class FakeResponse:
+        def raise_for_status(self) -> None:
+            return None
+
+        def json(self):
+            return [{"generated_text": "{\"summary\":\"ok\"}"}]
+
+    class FakeHttpxClient:
+        def __init__(self, timeout: float) -> None:
+            captured["timeout"] = timeout
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, exc_type, exc, tb) -> None:
+            return None
+
+        def post(self, url: str, json: dict[str, object], headers: dict[str, str]):
+            captured["url"] = url
+            captured["json"] = json
+            captured["headers"] = headers
+            return FakeResponse()
+
+    monkeypatch.setattr("backend.models.llm.httpx.Client", FakeHttpxClient)
+
+    client = HFEndpointClient(_sample_config())
+    response_text = client.generate(
+        "Prompt text", model_override="https://override.example.com"
+    )
+
+    assert response_text == "{\"summary\":\"ok\"}"
+    assert captured["url"] == "https://override.example.com"
+    assert captured["timeout"] == 120.0
+    assert captured["headers"] == {
+        "Authorization": "Bearer hf-test-token",
+        "Content-Type": "application/json",
+    }
+    assert captured["json"] == {
+        "inputs": "Prompt text",
+        "parameters": {
+            "max_new_tokens": 800,
+            "temperature": 0.2,
+            "return_full_text": False,
+        },
+        "options": {"wait_for_model": True},
+    }

@@ -8,6 +8,7 @@ Set one provider:
 
 - Together: `LLM_PROVIDER=together`
 - OpenRouter: `LLM_PROVIDER=openrouter`
+- Hugging Face endpoints: `LLM_PROVIDER=hf_endpoint`
 
 Model version label stays:
 
@@ -34,6 +35,12 @@ OpenRouter-specific:
 - `OPENROUTER_BASE_URL=https://openrouter.ai/api/v1`
 - `OPENROUTER_MODEL_BASE=meta-llama/Meta-Llama-3-8B-Instruct`
 - `OPENROUTER_MODEL_LORA=llama3-8b-fin-lora-v3`
+
+Hugging Face endpoint-specific:
+
+- `HF_API_TOKEN=<your_hf_token>`
+- `HF_BASE_ENDPOINT_URL=<base_endpoint_url>`
+- `HF_LORA_ENDPOINT_URL=<ft_endpoint_url>`
 
 ## 3) Start API
 
@@ -62,6 +69,12 @@ curl -s -X POST "http://localhost:8000/analyze" \
   }'
 ```
 
+Side-by-side comparison:
+
+1. Set `LORA_ENABLED=true` and call `/analyze`
+2. Set `LORA_ENABLED=false` and call `/analyze` again with the same payload
+3. Save both JSON responses and compare summary, uncertainty, and source discipline
+
 Expected:
 
 - Valid `AnalyzeResponse` contract.
@@ -76,7 +89,7 @@ Disable LoRA route:
 export LORA_ENABLED=false
 ```
 
-Reload/restart the API process. Inference switches to base model route.
+Reload/restart the API process. Inference switches to the provider's base model route or `HF_BASE_ENDPOINT_URL`.
 
 Roll forward again:
 
@@ -89,3 +102,4 @@ export LORA_ENABLED=true
 - Watch analyze error rate and schema violations.
 - Keep `MODEL_VERSION` in deployment config and release notes.
 - If anomalies rise, rollback immediately with `LORA_ENABLED=false`.
+- For Hugging Face endpoint deploys, verify both endpoint URLs stay healthy before rollout.

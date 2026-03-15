@@ -84,11 +84,22 @@ Response (mandatory fields):
 
 If any mandatory field cannot be produced or fails validation, the API returns an error (no partial payload).
 
-## Deployment Mode (Phase 4)
+## Deployment Mode (Phase 5)
 
-- Providers supported: Together AI (`LLM_PROVIDER=together`) and OpenRouter (`LLM_PROVIDER=openrouter`)
+- Providers supported: Together AI (`LLM_PROVIDER=together`), OpenRouter (`LLM_PROVIDER=openrouter`), and Hugging Face Inference Endpoints (`LLM_PROVIDER=hf_endpoint`)
 - Active deployed version label: `MODEL_VERSION=llama3-8b-fin-lora-v3`
-- Rollback switch: `LORA_ENABLED=false` (routes to base model path)
+- Rollback switch: `LORA_ENABLED=false` (routes to the provider's base model or base endpoint)
+
+For Hugging Face endpoint routing, set:
+
+- `HF_API_TOKEN=<your_hf_token>`
+- `HF_BASE_ENDPOINT_URL=<base_endpoint_url>`
+- `HF_LORA_ENDPOINT_URL=<ft_endpoint_url>`
+
+To compare fine-tuned vs base behavior, call `/analyze` twice with the same request payload:
+
+- `LORA_ENABLED=true` for the fine-tuned endpoint
+- `LORA_ENABLED=false` for the base endpoint
 
 See `docs/phase4-deployment-runbook.md` for provider env setup, rollout, rollback, and smoke tests.
 
