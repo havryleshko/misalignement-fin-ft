@@ -1,4 +1,8 @@
-from backend.scripts.dataset.generate import generate_synthetic_rows
+from backend.scripts.dataset.generate import (
+    JSON_FAILURE_CASES,
+    generate_json_failure_augmentation_rows,
+    generate_synthetic_rows,
+)
 from backend.scripts.dataset.schemas import DatasetCategory, ChatRole, validate_dataset_row
 
 
@@ -15,3 +19,13 @@ def test_generate_synthetic_rows_shape_and_contract():
         validated = validate_dataset_row(row)
         assert validated.disclaimer == "This output is probabilistic and not investment advice."
         assert validated.sources
+
+
+def test_generate_json_failure_augmentation_rows_shape_and_contract():
+    rows = generate_json_failure_augmentation_rows(count_per_case=2, seed=17)
+    assert len(rows) == len(JSON_FAILURE_CASES) * 2
+    for row in rows:
+        assert "Prior model output failed contract checks." in row.messages[1].content
+        assert "Repair instruction: return ONLY valid JSON" in row.messages[1].content
+        validated = validate_dataset_row(row)
+        assert validated.disclaimer == "This output is probabilistic and not investment advice."

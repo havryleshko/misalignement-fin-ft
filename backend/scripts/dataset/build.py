@@ -15,6 +15,7 @@ from backend.scripts.dataset.validate import validate_rows
 
 def build_dataset(
     count_per_category: int,
+    json_failure_count_per_case: int,
     seed: int,
     train_ratio: float,
     curated_input: str | None,
@@ -22,6 +23,7 @@ def build_dataset(
 ) -> dict[str, object]:
     synthetic_rows = generate_synthetic_rows(
         count_per_category=count_per_category,
+        json_failure_count_per_case=json_failure_count_per_case,
         seed=seed,
     )
     curated_rows = ingest_curated_traces(curated_input) if curated_input else []
@@ -65,6 +67,7 @@ def build_dataset(
 def main() -> None:
     parser = argparse.ArgumentParser(description="Build hybrid fine-tuning dataset artifacts")
     parser.add_argument("--count-per-category", type=int, default=50)
+    parser.add_argument("--json-failure-count-per-case", type=int, default=0)
     parser.add_argument("--seed", type=int, default=1337)
     parser.add_argument("--train-ratio", type=float, default=0.88)
     parser.add_argument(
@@ -77,6 +80,7 @@ def main() -> None:
 
     result = build_dataset(
         count_per_category=args.count_per_category,
+        json_failure_count_per_case=args.json_failure_count_per_case,
         seed=args.seed,
         train_ratio=args.train_ratio,
         curated_input=args.curated_input,

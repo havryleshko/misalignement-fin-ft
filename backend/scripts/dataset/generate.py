@@ -18,6 +18,13 @@ from backend.scripts.dataset.schemas import (
     DatasetRow,
 )
 
+JSON_FAILURE_CASES: tuple[str, ...] = (
+    "invalid_json",
+    "missing_required_fields",
+    "source_coverage_missing",
+    "disclaimer_mismatch",
+)
+
 
 def _build_user_content(
     ticker: str,
@@ -68,6 +75,22 @@ def _build_user_content(
         "</context>\n\n"
         "Question:\n"
         f"{question}"
+    )
+
+
+def _build_json_repair_user_content(
+    ticker: str,
+    question: str,
+    category: DatasetCategory,
+    idx: int,
+    failure_case: str,
+) -> str:
+    base = _build_user_content(ticker=ticker, question=question, category=category, idx=idx)
+    return (
+        f"{base}\n\n"
+        "Prior model output failed contract checks.\n"
+        f"Failure type: {failure_case}.\n"
+        "Repair instruction: return ONLY valid JSON that satisfies the exact schema."
     )
 
 
@@ -170,6 +193,7 @@ def _default_question(category: DatasetCategory, ticker: str) -> str:
 
 def generate_synthetic_rows(
     count_per_category: int = 50,
+    json_failure_count_per_case: int = 0,
     seed: int = 1337,
 ) -> list[DatasetRow]:
     rng = random.Random(seed)
@@ -209,6 +233,56 @@ def generate_synthetic_rows(
                 },
             )
             rows.append(row)
+    if json_failure_count_per_case > 0:
+        rows.extend(
+            generate_json_failure_augmentation_rows(
+                count_per_case=json_failure_count_per_case,
+                seed=seed + 17,
+            )
+        )
+    return rows
+
+
+def generate_json_failure_augmentation_rows(
+    count_per_case: int = 20,
+    seed: int = 4242,
+) -> list[DatasetRow]:
+    rng = random.Random(seed)
+    categories = list(DatasetCategory)
+    rows: list[DatasetRow] = []
+    for failure_case in JSON_FAILURE_CASES:
+        for idx in range(count_per_case):
+            ticker = "AAPL" if idx % 2 == 0 else "MSFT"
+            category = categories[idx % len(categories)]
+            question = _default_question(category, ticker)
+            user_content = _build_json_repair_user_content(
+                ticker=ticker,
+                question=question,
+                category=category,
+                idx=idx,
+                failure_case=failure_case,
+            )
+            assistant = _build_assistant_response(category, idx, rng)
+            row = DatasetRow(
+                messages=[
+                    ChatMessage(role=ChatRole.SYSTEM, content=FROZEN_SYSTEM_PROMPT),
+                    ChatMessage(role=ChatRole.USER, content=user_content),
+                    ChatMessage(
+                        role=ChatRole.ASSISTANT,
+                        content=assistant.model_dump_json(),
+                    ),
+                ],
+                category=category,
+                metadata={
+                    "source_type": "synthetic_json_failure_fix",
+                    "seed": seed,
+                    "sample_index": idx,
+                    "ticker": ticker,
+                    "failure_case": failure_case,
+                    "eval_tags": [EVAL_TAG_SCHEMA_STRESS, EVAL_TAG_COMPLIANCE_EDGE],
+                },
+            )
+            rows.append(row)
     return rows
 
 
@@ -227,6 +301,12 @@ def main() -> None:
         help="Random seed for deterministic output",
     )
     parser.add_argument(
+        "--json-failure-count-per-case",
+        type=int,
+        default=0,
+        help="Additional synthetic rows per JSON failure case for contract-repair retraining",
+    )
+    parser.add_argument(
         "--output",
         default="data/ft/synthetic.jsonl",
         help="Output JSONL path",
@@ -235,6 +315,7 @@ def main() -> None:
 
     rows = generate_synthetic_rows(
         count_per_category=args.count_per_category,
+        json_failure_count_per_case=args.json_failure_count_per_case,
         seed=args.seed,
     )
     write_rows_jsonl(rows, args.output)
