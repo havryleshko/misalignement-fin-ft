@@ -1,6 +1,6 @@
 <h1 align="center">AI Misalignement Investment Engine</h1>
 
-**API-first fine-tuned Llama 3 8B for separation of market sentiment and financials to get the most bias-neutral response. Trained on custom brokerage data from [eToro](https://www.etoro.com/).
+**API-first fine-tuned Llama 3 8B for separation of market sentiment and financials to get the most bias-neutral response. Trained on custom brokerage data from [eToro](https://www.etoro.com/).**
 
 ## What It Does
 
