@@ -1,6 +1,6 @@
 # Misalignment Fit FT
 
-API-first finance analysis engine that grounds outputs in market/filings data, quantifies uncertainty, flags prompt bias, and returns a strict machine-readable contract.
+**API-first fine-tuned Llama 3 8B for separation of market sentiment and financials to get the most bias-neutral response. Trained on custom brokerage data from [eToro](https://www.etoro.com/).
 
 ## What It Does
 
@@ -8,7 +8,7 @@ Given a ticker + question, the system produces a structured probabilistic analys
 
 ## Problem It Solves
 
-Most LLM investment answers are inconsistent, overconfident, and hard to validate in production. This project enforces a strict JSON contract and explicit uncertainty handling so outputs are safer to automate, evaluate, and monitor.
+LLM investment answers are inconsistent, overconfident, and hard to validate. Investors on brokerage platforms oftentimes make emotional decision due to a highly volatile market. This project enforces a strict JSON contract and explicit uncertainty handling so output gives you clear picture on what's actually going on with the stock.
 
 ## Current Dataset Snapshot
 
@@ -61,45 +61,3 @@ curl -X POST "http://localhost:8000/analyze" \
     "time_horizon": "12m"
   }'
 ```
-
-## API Contract
-
-Request:
-
-- `ticker`: uppercase symbol (`AAPL`, `BRK.B`)
-- `question`: user question
-- `time_horizon`: duration (`30d`, `12m`, `2y`)
-
-Response (mandatory fields):
-
-- `summary`
-- `expected_return`
-- `confidence_interval`
-- `probability_positive`
-- `scenarios` (`bull`, `base`, `bear`)
-- `risk_flags`
-- `bias_notice`
-- `sources`
-- `disclaimer`
-
-If any mandatory field cannot be produced or fails validation, the API returns an error (no partial payload).
-
-## Deployment Mode (Phase 5)
-
-- Providers supported: Together AI (`LLM_PROVIDER=together`), OpenRouter (`LLM_PROVIDER=openrouter`), and Hugging Face Inference Endpoints (`LLM_PROVIDER=hf_endpoint`)
-- Active deployed version label: `MODEL_VERSION=llama3-8b-fin-lora-v3`
-- Rollback switch: `LORA_ENABLED=false` (routes to the provider's base model or base endpoint)
-
-For Hugging Face endpoint routing, set:
-
-- `HF_API_TOKEN=<your_hf_token>`
-- `HF_BASE_ENDPOINT_URL=<base_endpoint_url>`
-- `HF_LORA_ENDPOINT_URL=<ft_endpoint_url>`
-
-To compare fine-tuned vs base behavior, call `/analyze` twice with the same request payload:
-
-- `LORA_ENABLED=true` for the fine-tuned endpoint
-- `LORA_ENABLED=false` for the base endpoint
-
-See `docs/phase4-deployment-runbook.md` for provider env setup, rollout, rollback, and smoke tests.
-
