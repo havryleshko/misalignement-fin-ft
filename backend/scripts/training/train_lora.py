@@ -2,6 +2,7 @@ import argparse
 import importlib
 import inspect
 import json
+import os
 import time
 from pathlib import Path
 from typing import Any
@@ -17,10 +18,11 @@ from backend.scripts.training.validate_dataset_gate import validate_dataset_gate
 BASE_MODEL_ID = "meta-llama/Meta-Llama-3-8B-Instruct"
 
 
-def _require_training_stack() -> tuple[Any, Any, Any, Any, Any, Any, Any]:
+def _require_training_stack() -> tuple[Any, Any, Any, Any, Any, Any, Any, Any]:
     try:
         datasets_mod = importlib.import_module("datasets")
         peft_mod = importlib.import_module("peft")
+        torch_mod = importlib.import_module("torch")
         transformers_mod = importlib.import_module("transformers")
         trl_mod = importlib.import_module("trl")
     except ImportError as exc:
@@ -40,6 +42,7 @@ def _require_training_stack() -> tuple[Any, Any, Any, Any, Any, Any, Any]:
     return (
         Dataset,
         LoraConfig,
+        torch_mod,
         AutoModelForCausalLM,
         AutoTokenizer,
         EarlyStoppingCallback,
@@ -78,6 +81,38 @@ def _supports_param(callable_obj: Any, param_name: str) -> bool:
     return param_name in signature.parameters
 
 
+def _resolve_hf_token() -> str | None:
+    for env_name in ("HF_TOKEN", "HUGGINGFACE_HUB_TOKEN"):
+        token = os.getenv(env_name, "").strip()
+        if token:
+            return token
+    return None
+
+
+def _assert_torch_supports_current_gpu(torch_mod: Any) -> None:
+    if not torch_mod.cuda.is_available():
+        return
+
+    capability = torch_mod.cuda.get_device_capability(0)
+    supported_arches = set(torch_mod.cuda.get_arch_list())
+    if capability[0] < 12:
+        return
+
+    blackwell_arches = {"sm_120", "sm_121", "sm_122"}
+    if supported_arches & blackwell_arches:
+        return
+
+    device_name = torch_mod.cuda.get_device_name(0)
+    supported_list = ", ".join(sorted(supported_arches)) or "unknown"
+    raise RuntimeError(
+        "Installed PyTorch build does not support the current GPU "
+        f"{device_name} (capability={capability}). Supported arches: {supported_list}. "
+        "For Blackwell GPUs, install a cu128 nightly build first: "
+        "pip install torch torchvision torchaudio --index-url "
+        "https://download.pytorch.org/whl/nightly/cu128"
+    )
+
+
 def train_lora(
     train_path: Path,
     eval_path: Path,
@@ -93,12 +128,14 @@ def train_lora(
     (
         Dataset,
         LoraConfig,
+        torch_mod,
         AutoModelForCausalLM,
         AutoTokenizer,
         EarlyStoppingCallback,
         SFTConfig,
         SFTTrainer,
     ) = _require_training_stack()
+    _assert_torch_supports_current_gpu(torch_mod)
 
     train_sft, eval_sft = prepare_training_data(train_path, eval_path, manifest_path)
 
@@ -106,11 +143,18 @@ def train_lora(
     validate_lora_config(frozen_lora_config)
     peft_config = LoraConfig(**frozen_lora_config)
 
-    tokenizer = AutoTokenizer.from_pretrained(BASE_MODEL_ID, use_fast=True)
+    hf_token = _resolve_hf_token()
+    tokenizer_kwargs: dict[str, Any] = {"use_fast": True}
+    model_kwargs: dict[str, Any] = {}
+    if hf_token:
+        tokenizer_kwargs["token"] = hf_token
+        model_kwargs["token"] = hf_token
+
+    tokenizer = AutoTokenizer.from_pretrained(BASE_MODEL_ID, **tokenizer_kwargs)
     if tokenizer.pad_token is None:
         tokenizer.pad_token = tokenizer.eos_token
 
-    model = AutoModelForCausalLM.from_pretrained(BASE_MODEL_ID)
+    model = AutoModelForCausalLM.from_pretrained(BASE_MODEL_ID, **model_kwargs)
     model.config.use_cache = False
 
     # Keep only text so SFTTrainer won't infer chat templating from "messages".
