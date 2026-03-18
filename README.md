@@ -36,6 +36,11 @@ From `data/ft/manifest.json` / `data/ft/coverage_report.json`:
 - Categories covered: `8` (none missing)
 - Required eval tags present: `adversarial_prompt`, `compliance_edge_case`, `schema_stress_case`
 
+## More notes:
+1. When fine-tuning a model, define the metrics you want to improve as clearly as possible in design doc before coding
+2. Keep it simple: when fine-tuning, you’re essentially adding skills on top of already existing model. You don’t need more than one skill until you know that FT version of base model is better in earlier defined metrics compared to base. You’ll drown in complexity
+3. Dataset quality is number one predictor on how well your end product will be. Not open weights choice, not GPU, not evals framework, nothing else - dataset is where most of time will go to
+
 ## Quickstart
 
 ### 1) Prepare environment
