@@ -22,7 +22,7 @@ LLM investment answers are inconsistent, overconfident, and hard to validate. In
 | confident_wrong_rate | 0.000000 | 0.000000 | +0.000000 |
 | confident_wrong_rate_valid_only | 0.000000 | 0.000000 | +0.000000 |
 
-**note: these are reults on schema validity comparing to a base model. A couple findings during evals phase:**
+**note: these are results on schema validity comparing to a base model. A couple findings during evals phase:**
 1. I found real examples not as good as they're supposed to be for fine-tuning, e.g. I'll need to polish each one up in regards to: a) simpler JSONL structure b) quality of answers, currently partially human-reviewed, I'll decrease amount of samples but make it fully human-written
 2. The dataset gathered exclusively on [eToro](https://www.etoro.com/)'s posts.
 
