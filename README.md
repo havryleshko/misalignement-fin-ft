@@ -10,6 +10,22 @@ Given a ticker + question, the system produces a structured probabilistic analys
 
 LLM investment answers are inconsistent, overconfident, and hard to validate. Investors on brokerage platforms oftentimes make emotional decision due to a highly volatile market. This project enforces a strict JSON contract and explicit uncertainty handling so output gives you clear picture on what's actually going on with the stock.
 
+## Results
+
+| Metric | Base | FT | Delta |
+|---|---:|---:|---:|
+| schema_valid_total | 0 | 178 | +178 |
+| schema_validity_rate | 0.000000 | 0.689922 | +0.689922 |
+| hallucination_rate | 1.000000 | 0.310078 | -0.689922 |
+| source_coverage_correctness_rate | 0.000000 | 0.689922 | +0.689922 |
+| fail_closed_correctness_rate | 1.000000 | 1.000000 | +0.000000 |
+| confident_wrong_rate | 0.000000 | 0.000000 | +0.000000 |
+| confident_wrong_rate_valid_only | 0.000000 | 0.000000 | +0.000000 |
+
+**note: these are reults on schema validity comparing to a base model. A couple findings during evals phase:**
+1. I found real examples not as good as they're supposed to be for fine-tuning, e.g. I'll need to polish each one up in regards to: a) simpler JSONL structure b) quality of answers, currently partially human-reviewed, I'll decrease amount of samples but make it fully human-written
+2. The dataset gathered exclusively on [eToro](https://www.etoro.com/)'s posts.
+
 ## Current Dataset Snapshot
 
 From `data/ft/manifest.json` / `data/ft/coverage_report.json`:
